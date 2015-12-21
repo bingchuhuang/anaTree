@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<job maxFilesPerProcess="1" filesPerHour="1" simulateSubmission="false">
+
+        <stdout discard="true" />
+        <stderr URL="file:&path;/log/log_&ver;/&run;/$JOBID.err" />
+                
+<SandBox installer="ZIP">
+	<Package name="LocalPackage">
+		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/makeAnaTree.C</File>
+		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/StRoot/</File>
+		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/.sl64_gcc447/</File>
+		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/.sl64_gcc482/</File>
+		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/runNumberList_run14AuAu200mb</File>
+		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/recenter_correction.root</File>
+      <File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/checkProduction.C</File>
+   </Package>
+</SandBox>
+
+<command>
+starver SL15c
+
+echo $INPUTFILE0
+set filename=`basename $INPUTFILE0`
+echo $FILEBASENAME
+set RUN=`perl $STAR/StRoot/macros/embedding/getYearDayFromFile.pl -r ${FILEBASENAME}`
+ls -l --color=none
+root4star -q -b -l makeAnaTree.C\(${RUN},\"$INPUTFILE0\"\,false,&mode;\) &gt;&amp; ${JOBID}_$filename.log
+tar -zcvf ${JOBID}.log.tgz ${JOBID}_$filename.log
+ls -l --color=none
+
+</command>
+
+    <input URL="catalog:star.bnl.gov?production=P15ic,collision=auau200,runnumber=&run;,trgsetupname=AuAu_200_production_2014||AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_Mudst,storage=local" nFiles="all"/>
+    <output fromScratch="*.log.tgz" toURL="&path;/log/log_&ver;/&run;/"/>
+    <output fromScratch="*anaTree.root" toURL="&path;/out/out_&ver;/&run;/" />
+    <output fromScratch="*qa.root" toURL="&path;/out/out_&ver;/&run;/" />
+    <output fromScratch="*hist.root" toURL="&path;/out/out_&ver;/&run;/" />
+</job>
