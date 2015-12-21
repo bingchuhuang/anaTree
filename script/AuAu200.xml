@@ -4,6 +4,7 @@
         <stdout discard="true" />
         <stderr URL="file:&path;/log/log_&ver;/&run;/$JOBID.err" />
                 
+        <!--
 <SandBox installer="ZIP">
 	<Package name="LocalPackage">
 		<File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/makeAnaTree.C</File>
@@ -15,9 +16,17 @@
       <File>file:/star/u/huangbc/data01/pico/anaTree/20151125_v4/prod/checkProduction.C</File>
    </Package>
 </SandBox>
+-->
 
 <command>
 starver SL15c
+
+ln -s &path;/makeAnaTree.C .
+ln -s &path;/StRoot/ .
+ln -s &path;/.sl64_gcc447/ .
+ln -s &path;/.sl64_gcc482/ .
+ln -s &path;/runNumberList_run14AuAu200mb .
+ln -s &path;/recenter_correction.root .
 
 echo $INPUTFILE0
 set filename=`basename $INPUTFILE0`
