@@ -28,23 +28,27 @@ if [ ! -d submit ]; then
    mkdir submit
 fi
 
-cd submit/
+if [ ! -d submit/$1 ]; then
+   mkdir submit/$1
+fi
+
+cd submit/$1
  
 if [ -f runNumber_$1_$2 ]; then
    rm runNumber_$1_$2
 fi
 
 get_file_list.pl -keys 'runnumber' -cond 'production=P15ic,collision=auau200,trgsetupname=AuAu_200_production_2014||AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_Mudst,storage=local' -limit 0 >& runNumber_$1_$2
-cp runNumber_$1_$2 ../. 
+cp runNumber_$1_$2 ../.
 
 echo $dir
 for runId in `cat runNumber_$1_$2`
 do
-   if [ ! -d $dir/submit/$runId ]; then
-      mkdir $dir/submit/$runId
+   if [ ! -d $dir/submit/$1/$runId ]; then
+      mkdir $dir/submit/$1/$runId
    fi
-   cp $dir/AuAu200.xml $dir/submit/$runId/.
-   cd $dir/submit/$runId/
+   cp $dir/AuAu200.xml $dir/submit/$1/$runId/.
+   cd $dir/submit/$1/$runId/
    if [ ! -d ${dir}/out/out_$1/$runId ]; then
    	mkdir ${dir}/out/out_$1/$runId
    fi
