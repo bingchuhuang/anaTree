@@ -661,8 +661,8 @@ Int_t StPicoAnaTreeMaker::MakeWrite() {
 			fillPairs();
 			fillEmcTrigger();
 			if(mTriggerSelection==mtd) fillMtdTrigger();
-         int counts = mAnaTreeArrays[anaTreeETrack]->GetEntries() + mAnaTreeArrays[anaTreeMuTrack]->GetEntries() + mAnaTreeArrays[anaTreePartETrack]->GetEntries();
-         if(counts>=1) mTTree->Fill();
+         //int counts = mAnaTreeArrays[anaTreeETrack]->GetEntries() + mAnaTreeArrays[anaTreeMuTrack]->GetEntries() + mAnaTreeArrays[anaTreePartETrack]->GetEntries();
+         mTTree->Fill();
 		}
 	}
 	return kStOK;
