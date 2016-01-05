@@ -1495,6 +1495,11 @@ Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, I
    if(q1==1&&q2==1) type = 2;
    if(q1==-1&&q2==-1) type = 3;
 
+   Int_t id1 = t1->id();
+   Int_t id2 = t2->id();
+
+   if(id1==id2) return false;
+
    StPhysicalHelixD helix1 = t1->helix();
 	StPhysicalHelixD helix2 = t2->helix();
 	pairD s = helix1.pathLengths(helix2);
