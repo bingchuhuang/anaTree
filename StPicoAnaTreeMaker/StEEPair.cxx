@@ -36,7 +36,7 @@ StEEPair::StEEPair(Char_t type, Short_t dauIndex1, Short_t dauIndex2, Float_t  d
         )
     : mType(type), mDauIndex1(dauIndex1), mDauIndex2(dauIndex2), mDauDcaDist(dauDcaDist*1000),
     mPairDcaToVtx(pairDcaToVtx),mCosThetaStar(cosThetaStar*10000),mPointingAngle(pointingAngle*10000),mPairPhiV(pairPhiV*10000),
-   mPairPt(pairPt),mPairEta(pairEta*10000),mPairPhi(pairPhi*10000),mPairMass(pairMass*1000), 
+   mPairPt(pairPt*1000),mPairEta(pairEta*10000),mPairPhi(pairPhi*10000),mPairMass(pairMass*1000), 
    mPairPMass(pairPMass*1000), 
    //mPairPPt(pairPPt*1000),mPairPEta(pairPEta*10000),mPairPPhi(pairPPhi*10000),mPairPMass(pairPMass*1000), 
 	mPairCtau(pairCtau), mPairOx(pairOx*100), mPairOy(pairOy*100), mPairOz(pairOz*100)

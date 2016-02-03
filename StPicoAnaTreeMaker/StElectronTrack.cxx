@@ -97,6 +97,19 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
       mBSMDNPhi = emcPid->nPhi();
 
       mBTOWId = emcPid->btowId();
+      mEmcTrgId = -1;
+   }else{
+      mBTOWADC0 = 0;
+      mBTOWE0 = 0;
+      mBTOWE = 0;
+      mBEMCDistZ = 32768;
+      mBEMCDistPhi = 32768;
+      mBSMDNEta = 0;
+      mBSMDNPhi = 0;
+
+      mBTOWId = 0;
+      mEmcTrgId = -1;
+
    }
 }
 

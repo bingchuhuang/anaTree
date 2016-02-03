@@ -79,7 +79,7 @@ ClassImp(StPicoAnaTreeMaker)
 	}
 	mEventCounter = 0;
 
-	mNMaxRunId = 1750;//1480 used on 10-22-2015
+	mNMaxRunId = 1700;//1480 used on 10-22-2015
 	mNMaxCentrality = 20;
 
 	mTriggerSelection = 0; 
@@ -258,7 +258,7 @@ Int_t StPicoAnaTreeMaker::Init() {
 	indata.open(mRunList.Data());
 	mTotalRunId.clear();
 	if(indata.is_open()){
-		cout << "read in total run number list and map it"<<endl;
+		cout << "read in total run number list and map it. runlist = "<<mRunList.Data()<<endl;
 		Int_t oldId;
 		Int_t newId=0;
 		while(indata>>oldId){

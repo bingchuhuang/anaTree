@@ -56,15 +56,15 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
 	mNBEMCMatch = ev->nBEMCMatch() ;
 	mNBTOFMatch = ev->nBTOFMatch() ;
 
-	mZDCx = (UInt_t)ev->ZDCx();
-	mBBCx = (UInt_t)ev->BBCx();
+	mZDCx = (UInt_t)(ev->ZDCx());
+	mBBCx = (UInt_t)(ev->BBCx());
 	mBackgroundRate = ev->backgroundRate();
 	mbTofTrayMultiplicity = ev->btofTrayMultiplicity() ;
 	mNumberOfGlobalTracks = ev->numberOfGlobalTracks() ;
-	mNHitsHFT[0] = (UShort_t)ev->numberOfPxlInnerHits();
-	mNHitsHFT[1] = (UShort_t)ev->numberOfPxlOuterHits();
-	mNHitsHFT[2] = (UShort_t)ev->numberOfIstHits();
-	mNHitsHFT[3] = (UShort_t)ev->numberOfSsdHits();
+	mNHitsHFT[0] = ev->numberOfPxlInnerHits();
+	mNHitsHFT[1] = ev->numberOfPxlOuterHits();
+	mNHitsHFT[2] = ev->numberOfIstHits();
+	mNHitsHFT[3] = ev->numberOfSsdHits();
 	
 	mRandom->SetSeed(mEventId*100000+mZDCx);
 
@@ -197,26 +197,26 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
 
 	mRandom->Delete();
 
-	mQ0x 			= (Short_t)cossum0*100;
-	mQ0y 			= (Short_t)sinsum0*100;
+	mQ0x 			= cossum0*100;
+	mQ0y 			= sinsum0*100;
 
-	mQx 			= (Short_t)cossum*100;
-	mQy 			= (Short_t)sinsum*100;
+	mQx 			= cossum*100;
+	mQy 			= sinsum*100;
 
-	mQ1x 			= (Short_t)cossumQ1*100;
-	mQ1y 			= (Short_t)sinsumQ1*100;
-	mQ2x 			= (Short_t)cossumQ2*100;
-	mQ2y 			= (Short_t)sinsumQ2*100;
+	mQ1x 			= cossumQ1*100;
+	mQ1y 			= sinsumQ1*100;
+	mQ2x 			= cossumQ2*100;
+	mQ2y 			= sinsumQ2*100;
 
-	mQplusx 		= (Short_t)cossumQplus*100;
-	mQplusy 		= (Short_t)sinsumQplus*100;
-	mQminusx 	= (Short_t)cossumQminus*100;
-	mQminusy 	= (Short_t)sinsumQminus*100;
+	mQplusx 		= cossumQplus*100;
+	mQplusy 		= sinsumQplus*100;
+	mQminusx 	= cossumQminus*100;
+	mQminusy 	= sinsumQminus*100;
 
-	mQetaplusx 	= (Short_t)cossumQetaplus*100;
-	mQetaplusy 	= (Short_t)sinsumQetaplus*100;
-	mQetaminusx = (Short_t)cossumQetaminus*100;
-	mQetaminusy = (Short_t)sinsumQetaminus*100;
+	mQetaplusx 	= cossumQetaplus*100;
+	mQetaplusy 	= sinsumQetaplus*100;
+	mQetaminusx = cossumQetaminus*100;
+	mQetaminusy = sinsumQetaminus*100;
 
 
 	//calculate the original eventplane without any correction
@@ -224,7 +224,7 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
 	if((Q0->Mod())!=0.0){
 		double  eventPlane0 = 0.5*Q0->Phi();
 		if(eventPlane0<0.0)eventPlane0+=TMath::Pi();
-		mEventplane0 = (Short_t)eventPlane0*100;
+		mEventplane0 = eventPlane0*100;
 	}
 
 
@@ -233,7 +233,7 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
 	if((Q->Mod())!=0.0){
 		double  eventPlane = 0.5*Q->Phi();
 		if(eventPlane<0.0)eventPlane+=TMath::Pi();
-		mEventplane = (Short_t)eventPlane*100;
+		mEventplane = eventPlane*100;
 	}
 
 	//subevent1:
@@ -241,7 +241,7 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
 	if((Q1->Mod())!=0.0){
 		double  eventPlane1 = 0.5*Q1->Phi();
 		if(eventPlane1<0.0) eventPlane1 += TMath::Pi();
-		mEventplane1 = (Short_t)eventPlane1*100;
+		mEventplane1 = eventPlane1*100;
 	}
 
 	//subevent2:
@@ -249,7 +249,7 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
 	if((Q2->Mod())!=0.0){
 		double  eventPlane2 = 0.5*Q2->Phi();
 		if(eventPlane2<0.0) eventPlane2 += TMath::Pi();
-		mEventplane2 = (Short_t)eventPlane2*100;
+		mEventplane2 = eventPlane2*100;
 	}
 }
 

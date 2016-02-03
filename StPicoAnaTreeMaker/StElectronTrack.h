@@ -59,7 +59,7 @@ class StElectronTrack : public TObject {
   Int_t towerId() const          {return mBTOWId;}
   Short_t adc0() const          {return mBTOWADC0;}
   Int_t emcTriggerId() const          {return mEmcTrgId;}
-  void	setEmcTriggerId(Int_t id) 	{mEmcTrgId=(Short_t)id;}
+  void	setEmcTriggerId(Int_t id) 	{mEmcTrgId=id;}
 
   //const Float_t* params() const     { return mPar; }
   //const Float_t* errMatrix() const  { return mErrMatrix; }

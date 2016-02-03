@@ -77,7 +77,7 @@ class StEEPair : public TObject {
   UShort_t mPairMass;// *1000
 
   // primary
-  UShort_t  mPairPPt;  //*1000
+  //UShort_t  mPairPPt;  //*1000
   //Short_t  mPairPEta; //*10000
   //Short_t  mPairPPhi; //*10000
   UShort_t mPairPMass; // *1000

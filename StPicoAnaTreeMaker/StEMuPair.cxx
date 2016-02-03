@@ -27,8 +27,8 @@ StEMuPair::StEMuPair(Char_t type, UShort_t dauIndex1, UShort_t dauIndex2, Float_
 		Float_t  pairPPt, Float_t  pairPEta, Float_t  pairPPhi, 
 		Float_t  pairPMass, Float_t pairOx, Float_t pairOy, Float_t pairOz)
     : mType(type), mDauIndex1(dauIndex1), mDauIndex2(dauIndex2), mDauDcaDist(dauDcaDist*1000),
-   mPairPt(pairPt), mPairEta(pairEta), mPairPhi(pairPhi), mPairMass(pairMass),
-   mPairPPt(pairPt), mPairPEta(pairPEta), mPairPPhi(pairPPhi),
+   mPairPt(pairPt), mPairEta(pairEta*10000), mPairPhi(pairPhi*10000), mPairMass(pairMass*1000),
+   mPairPPt(pairPt), mPairPEta(pairPEta*10000), mPairPPhi(pairPPhi*10000),
    mPairPMass(pairPMass*1000), mPairOx(pairOx*100), mPairOy(pairOy*100), mPairOz(pairOz*100)
 {
 }
