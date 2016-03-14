@@ -4,9 +4,11 @@
 class StPicoAnaTreeMaker;
 class StEventHeader;
 class StElectronTrack;
+class StPartElectronTrack;
 class StMuonTrack;
 class StHadronTrack;
 class StEEPair;
+class StPhoEEPair;
 class StEMuPair;
 class StMuMuPair;
 class StEmcTrigger;
@@ -41,11 +43,13 @@ public:
 
   /// return pointer to i-th track 
   static StElectronTrack* eTrack(int i) { return (StElectronTrack*)anaTreeArrays[anaTreeETrack]->UncheckedAt(i); }
+  static StPartElectronTrack* partETrack(int i) { return (StPartElectronTrack*)anaTreeArrays[anaTreePartETrack]->UncheckedAt(i); }
   static StMuonTrack* muTrack(int i) { return (StMuonTrack*)anaTreeArrays[anaTreeMuTrack]->UncheckedAt(i); }
   static StHadronTrack* hTrack(int i) { return (StHadronTrack*)anaTreeArrays[anaTreeHTrack]->UncheckedAt(i); }
 
   /// return pointer to i-th pair 
   static StEEPair* eePair(int i) { return (StEEPair*)anaTreeArrays[anaTreeEEPair]->UncheckedAt(i); }
+  static StPhoEEPair* phoEEPair(int i) { return (StPhoEEPair*)anaTreeArrays[anaTreePhoEEPair]->UncheckedAt(i); }
   static StEMuPair* eMuPair(int i) { return (StEMuPair*)anaTreeArrays[anaTreeEMuPair]->UncheckedAt(i); }
   static StMuMuPair* MuMuPair(int i) { return (StMuMuPair*)anaTreeArrays[anaTreeMuMuPair]->UncheckedAt(i); }
   static StEmcTrigger* emcTrigger(int i) { return (StEmcTrigger*)anaTreeArrays[anaTreeEmcTrigger]->UncheckedAt(i); }
@@ -55,6 +59,7 @@ public:
   static unsigned int numberOfMuTracks() { return anaTreeArrays[anaTreeMuTrack]->GetEntries(); }
   static unsigned int numberOfHTracks() { return anaTreeArrays[anaTreeHTrack]->GetEntries(); }
   static unsigned int numberOfEEPairs() {return anaTreeArrays[anaTreeEEPair]->GetEntries(); }
+  static unsigned int numberOfPhoEEPairs() {return anaTreeArrays[anaTreePhoEEPair]->GetEntries(); }
   static unsigned int numberOfMuMuPairs() {return anaTreeArrays[anaTreeMuMuPair]->GetEntries(); }
   static unsigned int numberOfEMuPairs() {return anaTreeArrays[anaTreeEMuPair]->GetEntries(); }
   static unsigned int numberOfEmcTriggers() {return anaTreeArrays[anaTreeEmcTrigger]->GetEntries(); }

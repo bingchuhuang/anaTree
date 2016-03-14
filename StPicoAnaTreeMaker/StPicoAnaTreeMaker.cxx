@@ -106,7 +106,7 @@ ClassImp(StPicoAnaTreeMaker)
 	
    mPartEnSigECut[0] = -3.5; mPartEnSigECut[1] = 3.;
    mPhoEPairDcaCut = 1;
-   mPhoEMassCut = 0.15;
+   mPhoEMassCut = 0.24;
 
 	mEmcEPtCut[0] = 1.2; mEmcEPtCut[1] = 100;
 	mEmcEEtaCut[0] = -1.; mEmcEEtaCut[1] = 1.;
@@ -672,6 +672,9 @@ Int_t StPicoAnaTreeMaker::MakeWrite() {
 bool StPicoAnaTreeMaker::passEvent(StPicoDst *pico){
 	/* event selection */		
 	mhnEvents->Fill(0);
+   if(!pico->event()){
+      return false;
+   }
 	StThreeVectorF mPrimaryVertex = pico->event()->primaryVertex();
 	Float_t vzVpd = pico->event()->vzVpd();
 
@@ -857,8 +860,8 @@ void StPicoAnaTreeMaker::fillEventHeader() {
 	if(iter != mTotalRunId.end()) runIndex = iter->second;
 	else{
 		runIndex = -1;
-		cout<<"this run number is: "<<runId<<endl;
-		cout<<"Not found in the runnumber list!!!"<<endl;
+      //cout<<"this run number is: "<<runId<<endl;
+		//cout<<"Not found in the runnumber list!!!"<<endl;
 	}
 
 	StRefMultCorr* grefmultCorrUtil = CentralityMaker::instance()->getgRefMultCorr() ;
@@ -1151,7 +1154,7 @@ Bool_t StPicoAnaTreeMaker::isTofElectron(StPicoTrack* t)
          float L = tofPathLength(&vertexPos, &btofHitPos, t->helix().curvature()); 
          if(tof>0) beta = L/(tof*(c_light/1.0e9));
       }
-      invBeta = beta;
+      if(beta>0) invBeta = 1./beta;
 		localY = tofPid->btofYLocal();
 		localZ = tofPid->btofZLocal();
 		tray = tofPid->btofCellId()/192;
@@ -1201,9 +1204,10 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 	/* EMC+TPC electron PID*/
 	int index2EmcPid = t->emcPidTraitsIndex();
 	Float_t e = -999., zDist = -999., phiDist = -999., nEta = 0, nPhi = 0;
-	Float_t p = t->pMom().mag();
-	Float_t pt = t->pMom().perp();
-	Float_t eta = t->pMom().pseudoRapidity();
+   StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(), mPicoDst->event()->bField());
+	Float_t p = gMom.mag();
+	Float_t pt = gMom.perp();
+	Float_t eta = gMom.pseudoRapidity();
 	Float_t nSigE = t->nSigmaElectron();
 	if (index2EmcPid>=0){
 		StPicoEmcPidTraits *emcPid = mPicoDst->emcPidTraits(index2EmcPid);
@@ -1215,7 +1219,7 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 	}else{
 		return false;
 	}
-	mhnTracks->Fill(13);
+	mhnTracks->Fill(14);
 
 	Float_t pve = 0;
 	Float_t evp = 0;
@@ -1230,29 +1234,29 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 	mhPvEvsPt->Fill(pt,pve);
 
 	if(pt<mEmcEPtCut[0] || pt>mEmcEPtCut[1]) return false;
-	mhnTracks->Fill(14);
-	if(eta<mEmcEEtaCut[0] || eta>mEmcEEtaCut[1]) return false;
 	mhnTracks->Fill(15);
-	if(pve<mEmcEPveCut[0] || pve<mEmcEPveCut[1]) return false;
+	if(eta<mEmcEEtaCut[0] || eta>mEmcEEtaCut[1]) return false;
 	mhnTracks->Fill(16);
-	//if(zDist<mEZDistCut[0] || zDist>mEZDistCut[1]) return false;
+	if(pve<mEmcEPveCut[0] || pve<mEmcEPveCut[1]) return false;
 	mhnTracks->Fill(17);
+	//if(zDist<mEZDistCut[0] || zDist>mEZDistCut[1]) return false;
+	//mhnTracks->Fill(18);
 	//if(phiDist<mEPhiDistCut[0] || phiDist>mEPhiDistCut[1]) return false;
-	mhnTracks->Fill(18);
+	//mhnTracks->Fill(19);
 
 	mhEmcEnSigEvsPCut->Fill(p,nSigE);
 	mhEmcEnSigEvsPtCut->Fill(pt,nSigE);
 
 	//if(nEta<mEnEtaCut[0] || nEta>mEnEtaCut[1]) return false;
-	mhnTracks->Fill(19);
+	//mhnTracks->Fill(20);
 	//if(nPhi<mEnPhiCut[0] || nPhi>mEnPhiCut[1]) return false;
-	mhnTracks->Fill(20);
+	//mhnTracks->Fill(21);
 
 	mhSmdEnSigEvsPCut->Fill(p,nSigE);
 	mhSmdEnSigEvsPtCut->Fill(pt,nSigE);
 
 	if(nSigE<mEnSigECut[0] || nSigE>mEnSigECut[1]) return false;
-	mhnTracks->Fill(21);
+	mhnTracks->Fill(22);
 
 	return true;
 }
@@ -1521,7 +1525,8 @@ Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, I
 	Float_t pairMass = pair.m();
    
    if(dauDcaDist>mPhoEPairDcaCut) return false;
-   if(pairMass>mPhoEMassCut||(pairMass>0.1&&dauPt2<1)) return false; //primary pT<1 pairM<0.1, pT>1 use pairM<mPhoEMassCut
+   //if(pairMass>mPhoEMassCut||(pairMass>0.1&&dauPt2<1)) return false; //primary pT<1 pairM<0.1, pT>1 use pairM<mPhoEMassCut for minbias
+   if(pairMass>mPhoEMassCut) return false; //pairM<mPhoEMassCut, for ht
 
 	StThreeVectorF pmom1 = t1->pMom();
 	StLorentzVectorF pdau1(pmom1,pmom1.massHypothesis(ElectronMass));
