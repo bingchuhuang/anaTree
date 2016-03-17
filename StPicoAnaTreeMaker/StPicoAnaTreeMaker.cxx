@@ -1237,7 +1237,7 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 	mhnTracks->Fill(15);
 	if(eta<mEmcEEtaCut[0] || eta>mEmcEEtaCut[1]) return false;
 	mhnTracks->Fill(16);
-	if(pve<mEmcEPveCut[0] || pve<mEmcEPveCut[1]) return false;
+	if(pve<mEmcEPveCut[0] || pve>mEmcEPveCut[1]) return false;
 	mhnTracks->Fill(17);
 	//if(zDist<mEZDistCut[0] || zDist>mEZDistCut[1]) return false;
 	//mhnTracks->Fill(18);
