@@ -51,12 +51,14 @@ StPartElectronTrack::StPartElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.
    StPhysicalHelixD helix = t->helix();
    mGMom = t->gMom(vertexPos,picoDst->event()->bField());
    StThreeVectorF dcaPoint = helix.at(helix.pathLength(vertexPos.x(), vertexPos.y()));
-   mDcaZ = (dcaPoint.z() - vertexPos.z())*1000;
-   mDcaXY = (helix.geometricSignedDistance(vertexPos.x(),vertexPos.y()))*1000;
+   float dcaZ = (dcaPoint.z() - vertexPos.z())*10000.;
+   float dcaXY = (helix.geometricSignedDistance(vertexPos.x(),vertexPos.y()))*10000.;
+   mDcaZ = dcaZ>32768?32768:(Short_t)dcaZ;
+   mDcaXY = dcaXY>32768?32768:(Short_t)dcaXY;
 
    double thePath = helix.pathLength(vertexPos);
    StThreeVectorF dcaPos = helix.at(thePath);
-   //mDca = (dcaPos-vertexPos).mag()*1000;
+   mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){

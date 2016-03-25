@@ -17,9 +17,9 @@
 ClassImp(StHadronTrack)
 
 //----------------------------------------------------------------------------------
-StHadronTrack::StHadronTrack() : mId(0), mDca(0), mPMom(0., 0., 0.),  mGMom(0., 0., 0.), 
-   mNHitsFit(0), mNHitsDedx(0), mIsHftTrack(0), mNSigmaPion(32768), mNSigmaElectron(32768),   
-    mBeta(0), mLocalY(-999)
+StHadronTrack::StHadronTrack() : mId(0), mDca(0), mDcaXY(0), mDcaZ(0), mPMom(0., 0., 0.),  mGMom(0., 0., 0.), 
+   mNHitsFit(0), mNHitsDedx(0), mIsHftTrack(0), mNSigmaPion(32768), mNSigmaKaon(32768),   
+    mBeta(0), mLocalY(32768)
 {
 
 }
@@ -29,30 +29,41 @@ StHadronTrack::StHadronTrack() : mId(0), mDca(0), mPMom(0., 0., 0.),  mGMom(0., 
 /////////////////////////////////////////////////////////////////////////////////////////
 //----------------------------------------------------------------------------------
 StHadronTrack::StHadronTrack(StPicoDst *picoDst, StPicoTrack* t)
-   : mId(0), mDca(0), mPMom(0., 0., 0.),  mGMom(0., 0., 0.), 
-   mNHitsFit(0), mNHitsDedx(0), mIsHftTrack(0), mNSigmaPion(32768), mNSigmaElectron(32768),   
-    mBeta(0), mLocalY(-999)
+   : mId(0), mDca(0),  mDcaXY(0), mDcaZ(0), mPMom(0., 0., 0.),  mGMom(0., 0., 0.), 
+   mNHitsFit(0), mNHitsDedx(0), mIsHftTrack(0), mNSigmaPion(32768), mNSigmaKaon(32768),   
+    mBeta(0), mLocalY(32768)
 {
       mId        = (UShort_t)t->id();
       mPMom      = t->pMom();
       int q      = t->charge();
       mNHitsFit  = t->nHitsFit()*q;
       mNHitsDedx = (UChar_t)(t->nHitsDedx());
+      mIsHftTrack = t->isHFTTrack();
       mNSigmaPion = (fabs(t->nSigmaPion() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaPion() * 100.));
-      mNSigmaElectron = (fabs(t->nSigmaElectron() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 100.));
+      mNSigmaKaon = (fabs(t->nSigmaKaon() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaKaon() * 100.));
+      //mNSigmaElectron = (fabs(t->nSigmaElectron() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 100.));
 
 	   StThreeVectorF vertexPos = picoDst->event()->primaryVertex();
       StPhysicalHelixD helix = t->helix();
       double thePath = helix.pathLength(vertexPos);
       StThreeVectorF dcaPos = helix.at(thePath);
-      mDca = (dcaPos-vertexPos).mag()*1000;
+      mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
+      
+      mGMom = t->gMom(vertexPos,picoDst->event()->bField());
+
+      StThreeVectorF dcaPoint = helix.at(helix.pathLength(vertexPos.x(), vertexPos.y()));
+      float dcaZ = (dcaPoint.z() - vertexPos.z())*10000.;
+      float dcaXY = (helix.geometricSignedDistance(vertexPos.x(),vertexPos.y()))*10000.;
+      mDcaZ = dcaZ>32768?32768:(Short_t)dcaZ;
+      mDcaXY = dcaXY>32768?32768:(Short_t)dcaXY;
+
 
       int index2TofPid = t->bTofPidTraitsIndex();
       if (index2TofPid>=0){
         StPicoBTofPidTraits *tofPid = picoDst->btofPidTraits(index2TofPid);
         //mTofMatchFlag = tofPid->btofMatchFlag();
-        Float_t mom = mPMom.mag();
-        mLocalY = tofPid->btofYLocal();
+        //Float_t mom = mGMom.mag();
+        mLocalY = tofPid->btofYLocal()*1000;
         //mLocalZ = tofPid->btofZLocal();
         Float_t beta = tofPid->btofBeta();
         if(beta<1e-4||beta>=(USHRT_MAX-1)/20000){
@@ -74,7 +85,7 @@ StHadronTrack::~StHadronTrack()
 void StHadronTrack::Print(const Char_t *option) const
 {
       LOG_INFO << "id=" << id() << endm;
-      LOG_INFO << "pMom=" << pMom() << endm;
+      LOG_INFO << "gMom=" << gMom() << endm;
       LOG_INFO << " nHitsFit = " << nHitsFit() << " nHitsdEdx = " << nHitsDedx() << endm;
 }
 

@@ -46,9 +46,9 @@ class StElectronTrack : public TObject {
   Float_t localY() const          {return (Float_t)mLocalY/1000.;}
   //Float_t localZ() const          {return (Float_t)mLocalZ/1000.;}
   Float_t nSigmaElectron() const { return (Float_t)mNSigmaElectron/100.; }
-  Float_t dca() const           { return (Float_t)mDca/1000.; }
-  Float_t dcaXY() const           { return (Float_t)mDcaXY/1000.; }
-  Float_t dcaZ() const           { return (Float_t)mDcaZ/1000.; }
+  Float_t dca() const           { return (Float_t)mDca/10000.; }
+  Float_t dcaXY() const           { return (Float_t)mDcaXY/10000.; }
+  Float_t dcaZ() const           { return (Float_t)mDcaZ/10000.; }
   Float_t e0() const             { return (Float_t)mBTOWE0/1000.;} 
   Float_t e() const             { return (Float_t)mBTOWE/1000.;} 
   Float_t pve() const; 
@@ -74,9 +74,9 @@ class StElectronTrack : public TObject {
   StThreeVectorF mPMom;  // primary momentum, (0.,0.,0.) if none
   StThreeVectorF mGMom;
   UShort_t mDedx;             // dEdx*1000
-  Short_t  mDca;              // dca * 1000
-  Short_t  mDcaXY;            // dcaXY * 1000
-  Short_t  mDcaZ;             // dcaZ * 1000
+  Short_t  mDca;              // dca * 10000
+  Short_t  mDcaXY;            // dcaXY * 10000
+  Short_t  mDcaZ;             // dcaZ * 10000
   Char_t   mNHitsFit;         // q*nHitsFit
   //Char_t   mNHitsMax;         // nHitsMax
   UChar_t  mNHitsDedx;        // nHitsDedx

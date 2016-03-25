@@ -336,6 +336,8 @@ void StPicoAnaTreeMaker::openWrite() {
 		}
 		branch = mTTree->Branch(StAnaTreeArrays::anaTreeArrayNames[i],&mAnaTreeAllArrays[i],bufsize,mSplit);
 	}
+	mhnEvents = new TH1F("mhnEvents", "hnEvents; ",40,0,40);
+	mhnTracks = new TH1F("mhnTracks", "hnTracks; ",30,0,30);
 	declareHistos();
 }
 ///-----------------------------------------------------------------------
@@ -349,8 +351,6 @@ void StPicoAnaTreeMaker::declareHistos() {
    }
 	mOutputHistFile = new TFile(mOutputHistFileName.Data(),"RECREATE");
 	/* define pID histograms here */
-	mhnEvents = new TH1F("mhnEvents", "hnEvents; ",40,0,40);
-	mhnTracks = new TH1F("mhnTracks", "hnTracks; ",30,0,30);
 	mhnSigEvsP = new TH2F("mhnSigEvsP", "nSigmaElectron vs p; p (GeV/c); n#sigma_{e};",100,0,10,500,-10+1e-6,10+1e-6);
 	mhnSigEvsPt = new TH2F("mhnSigEvsPt", "nSigmaElectron vs p_{T}; p_{T} (GeV/c); n#sigma_{e};",100,0,10,500,-10+1e-6,10+1e-6);
 	mhTofEnSigEvsPCut = new TH2F("mhTofEnSigEvsPCut", "nSigmaElectron vs p w/ TOF cut; p (GeV/c); n#sigma_{e};",100,0,10,500,-10+1e-6,10+1e-6);
@@ -680,26 +680,7 @@ bool StPicoAnaTreeMaker::passEvent(StPicoDst *pico){
 
 	if(mTriggerSelection==minbias){
 		if(pico->event()->isMinBias()){
-
-
-			//			bool isVPDMB5 = kFALSE;
-			//			for (int i = 0; i < 5; i++)
-			//			{
-			//				if (pico->event()->triggerWord() & (1 << i)) isVPDMB5 = kTRUE ; //Select MB trigger
-			//			}
-			//			if (!(isVPDMB5))
-			//			{
-			//				//cout<<"not a VPDmb trigger"<<endl;
-			//				return false;
-			//			}
-
 			int triggerWord = pico->event()->triggerWord();
-			/*			bool isMBVPD5 = false;
-						if( (triggerWord>>1 & 0x1)||(triggerWord>>2 & 0x1)||(triggerWord>>3 & 0x1)||(triggerWord>>4 & 0x1)||(triggerWord>>5 & 0x1)  ) isMBVPD5 = true;
-
-						if(!isMBVPD5) return false;
-
-*/
 			mhnEvents->Fill(1);
 			if(mPrimaryVertex.z()<mVzCut[0]||mPrimaryVertex.z()>mVzCut[1]) return false;
 			mhnEvents->Fill(2);
@@ -718,11 +699,8 @@ bool StPicoAnaTreeMaker::passEvent(StPicoDst *pico){
 			if(triggerWord>>9 & 0x1) mhnEvents->Fill(13);
 			if(triggerWord>>10 & 0x1) mhnEvents->Fill(14);
 			if(triggerWord>>11 & 0x1) mhnEvents->Fill(15);
-
-
 			return true;
 		}else return false;
-
 	}else if(mTriggerSelection==ht){
 		if(pico->event()->isHT()){ 
 			mhnEvents->Fill(1);
@@ -732,6 +710,7 @@ bool StPicoAnaTreeMaker::passEvent(StPicoDst *pico){
 			//mhnEvents->Fill(3);
 
 			int triggerWord = pico->event()->triggerWord();
+		   if(pico->event()->isHT()) mhnEvents->Fill(10);
 			if(triggerWord>>19 & 0x1) mhnEvents->Fill(4);
 			if(triggerWord>>20 & 0x1) mhnEvents->Fill(5);
 			if(triggerWord>>21 & 0x1) mhnEvents->Fill(6);
@@ -758,7 +737,6 @@ bool StPicoAnaTreeMaker::passEvent(StPicoDst *pico){
 	}else{
 		LOG_ERROR<<"Wrong trigger selection: "<<mTriggerSelection<<endm;
 	}
-
 	return false;
 }
 
@@ -1073,15 +1051,22 @@ Bool_t StPicoAnaTreeMaker::isGoodTrack(StPicoTrack* t)
 	nHitsMapHFT = t->nHitsMapHFT();
 	bool isHFTTrack = t->isHFTTrack();
 
-	if(pt<mPtCut[0]||pt>mPtCut[1]) return false;
+   StThreeVectorF pMom = t->pMom();
+   double ppt = -999.,peta = -999.;
+   if(pMom.mag()>1e-5){ 
+      ppt = pMom.perp();
+      peta = pMom.pseudoRapidity();
+   }
+
+	if((pt<mPtCut[0]||pt>mPtCut[1])&&(ppt<mPtCut[0]||ppt>mPtCut[1])) return false;
 	mhnTracks->Fill(1);
-	if(eta<mEtaCut[0]||eta>mEtaCut[1]) return false;
+	if((eta<mEtaCut[0]||eta>mEtaCut[1])&&(peta<mEtaCut[0]||peta>mEtaCut[1])) return false;
 	mhnTracks->Fill(2);
 	if(dca<mDcaCut[0]||dca>mDcaCut[1]) return false;
 	mhnTracks->Fill(3);
 	if(nHitsFit<mnHitsFitCut[0]||nHitsFit>mnHitsFitCut[1]) return false;
 	mhnTracks->Fill(4);
-	if(nHitsDedx<mnHitsDedxCut[0]||nHitsDedx>mnHitsDedxCut[1]) return false;
+	//if(nHitsDedx<mnHitsDedxCut[0]||nHitsDedx>mnHitsDedxCut[1]) return false;
 	mhnTracks->Fill(5);
 	if(ratio<mRatioCut[0]||ratio>mRatioCut[1]) return false;
 	mhnTracks->Fill(6);
@@ -1172,6 +1157,7 @@ Bool_t StPicoAnaTreeMaker::isTofElectron(StPicoTrack* t)
 
 	mhTofLocalYvsTray->Fill(tray, localY);
 	mhTofLocalZvsTray->Fill(tray, localZ);
+	
 
 	if(invBeta<mEInvBetaCut[0] || invBeta>mEInvBetaCut[1]) return false;
 	mhnTracks->Fill(9);
@@ -1179,6 +1165,8 @@ Bool_t StPicoAnaTreeMaker::isTofElectron(StPicoTrack* t)
 	//mhnTracks->Fill(10);
 	//if(localZ<mELocalZCut[0] || localZ>mELocalZCut[1]) return false;
 	//mhnTracks->Fill(11);
+   int nHitsDedx = t->nHitsDedx();
+	if(nHitsDedx<mnHitsDedxCut[0]||nHitsDedx>mnHitsDedxCut[1]) return false;
 
 	mhTofEnSigEvsPCut->Fill(p, nSigE);
 	mhTofEnSigEvsPtCut->Fill(pt, nSigE);
@@ -1223,9 +1211,16 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 
 	Float_t pve = 0;
 	Float_t evp = 0;
-	if(e!=0) pve = p/e;
-	if(p!=0) evp = e/p;
-
+	if(e>0.1) pve = p/e;
+	if(p>0.1) evp = e/p;
+   
+   StThreeVectorF pMom = t->pMom();
+	Float_t pp = pMom.mag();
+	Float_t ppt = pMom.perp();
+   Float_t peta = pMom.pseudoRapidity();
+	Float_t ppve = 0;
+	if(e>0.1) ppve = pp/e;
+   
 
 	mhnEtavsnPhi->Fill(nPhi,nEta);
 	mhZDistvsPt->Fill(pt, zDist);
@@ -1233,16 +1228,18 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 	mhEvPvsPt->Fill(pt,evp);
 	mhPvEvsPt->Fill(pt,pve);
 
-	if(pt<mEmcEPtCut[0] || pt>mEmcEPtCut[1]) return false;
+	if((pt<mEmcEPtCut[0]||pt>mEmcEPtCut[1])&&(ppt<mEmcEPtCut[0]||ppt>mEmcEPtCut[1])) return false;
 	mhnTracks->Fill(15);
-	if(eta<mEmcEEtaCut[0] || eta>mEmcEEtaCut[1]) return false;
+	if((eta<mEmcEEtaCut[0]||eta>mEmcEEtaCut[1])&&(peta<mEmcEEtaCut[0]||peta>mEmcEEtaCut[1])) return false;
 	mhnTracks->Fill(16);
-	if(pve<mEmcEPveCut[0] || pve>mEmcEPveCut[1]) return false;
+	if((pve<mEmcEPveCut[0]||pve>mEmcEPveCut[1])&&(ppve<mEmcEPveCut[0]||ppve>mEmcEPveCut[1])) return false;
 	mhnTracks->Fill(17);
 	//if(zDist<mEZDistCut[0] || zDist>mEZDistCut[1]) return false;
 	//mhnTracks->Fill(18);
 	//if(phiDist<mEPhiDistCut[0] || phiDist>mEPhiDistCut[1]) return false;
 	//mhnTracks->Fill(19);
+   int nHitsDedx = t->nHitsDedx();
+	if(nHitsDedx<mnHitsDedxCut[0]||nHitsDedx>mnHitsDedxCut[1]) return false;
 
 	mhEmcEnSigEvsPCut->Fill(p,nSigE);
 	mhEmcEnSigEvsPtCut->Fill(pt,nSigE);
@@ -1329,6 +1326,16 @@ Bool_t StPicoAnaTreeMaker::isMuon(StPicoTrack* t)
 //-------------------------------------------------------------
 Bool_t StPicoAnaTreeMaker::isHadron(StPicoTrack* t)
 {
+   StThreeVectorF pMom = t->pMom();
+   double ppt = -999.;
+   if(pMom.mag()>1e-5){ 
+      ppt = pMom.perp();
+   }
+   
+   StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(),mPicoDst->event()->bField());
+	double pt = gMom.perp();
+
+	if((pt<0.3||pt>mPtCut[1])&&(ppt<0.3||ppt>mPtCut[1])) return false;
    return true;
 }
 //---------------------------------------------------------------
