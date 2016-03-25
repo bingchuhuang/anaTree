@@ -149,6 +149,7 @@ class StPicoDstMaker : public StMaker {
    int mSplit;
    int mCompression;
    int mBufferSize;
+   int mnEvents; 
    
    Int_t mIndex2Primary[nTrk];
    Int_t mMap2Track[nTrk];

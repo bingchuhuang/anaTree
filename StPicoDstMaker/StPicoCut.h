@@ -13,7 +13,7 @@ class StPicoCut : public TObject {
   StPicoCut();
   ~StPicoCut();
   
-  bool passEvent( StMuEvent * );
+  bool passEvent( StMuEvent *, Int_t prodMode );
   bool passTrack( StMuTrack * );
   /*
   bool passV0Daughter( StPicoTrack * );

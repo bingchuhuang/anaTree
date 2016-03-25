@@ -16,7 +16,7 @@ StPicoCut::StPicoCut() {}
 StPicoCut::~StPicoCut() {}
 
 //----------------------------------------------------------------------------------
-bool StPicoCut::passEvent( StMuEvent *ev )
+bool StPicoCut::passEvent( StMuEvent *ev, Int_t prodMode )
 {
   if(!ev){
     LOG_INFO << "StPicoCut::passEvent  No StMuEvent" << endm;
@@ -24,27 +24,43 @@ bool StPicoCut::passEvent( StMuEvent *ev )
   }
 //  StThreeVectorF pVertex = ev->eventSummary().primaryVertexPosition();
   StThreeVectorF pVertex = ev->primaryVertexPosition();
-  if(fabs(pVertex.x())<1.e-5 && fabs(pVertex.y())<1.e-5 && fabs(pVertex.z())<1.e-5){
-   LOG_INFO << "StPicoCut::passEvent  bad vertices (x,y,z) = ("
-            << pVertex.x() << ","
-            << pVertex.y() << ","
-            << pVertex.z() << ")"
-            << endm;
-    return kFALSE;
-  }
-  if(fabs(pVertex.z())>Pico::mVzMax){
-    LOG_INFO << "StPicoCut::passEvent  z-vertex out of range, vz  (evtSum)=" << pVertex.z() << " (direct)=" << ev->primaryVertexPosition().z() << endm;
-    return kFALSE;
+   if(fabs(pVertex.x())<1.e-5 && fabs(pVertex.y())<1.e-5 && fabs(pVertex.z())<1.e-5){
+    LOG_INFO << "StPicoCut::passEvent  bad vertices (x,y,z) = ("
+             << pVertex.x() << ","
+             << pVertex.y() << ","
+             << pVertex.z() << ")"
+             << endm;
+     return kFALSE;
+   }
+   if(fabs(pVertex.z())>Pico::mVzMax){
+     LOG_DEBUG << "StPicoCut::passEvent  z-vertex out of range, vz  (evtSum)=" << pVertex.z() << " (direct)=" << ev->primaryVertexPosition().z() << endm;
+     return kFALSE;
+   }
+
+  if(prodMode!=1){
+   const Float_t vx = pVertex.x() ;
+   const Float_t vy = pVertex.y() ;
+   if(sqrt(vx*vx+vy*vy)>Pico::mVrMax){
+     LOG_DEBUG << "StPicoCut::passEvent  vr-vertex out of range, vr = " << sqrt(vx*vx+vy*vy)
+       << ",  vx = " << vx
+       << ",  vy = " << vy
+       << endm;
+     return kFALSE ;
+   }
   }
 
-  const Float_t vx = pVertex.x() ;
-  const Float_t vy = pVertex.y() ;
-  if(sqrt(vx*vx+vy*vy)>Pico::mVrMax){
-    LOG_INFO << "StPicoCut::passEvent  vr-vertex out of range, vr = " << sqrt(vx*vx+vy*vy)
-      << ",  vx = " << vx
-      << ",  vy = " << vy
-      << endm;
-    return kFALSE ;
+  bool isProdTrg = kFALSE;
+  if(prodMode==1){ //ht
+      for(int i=nTrigger-6;i<nTrigger;i++) {
+         if(ev->triggerIdCollection().nominal().isTrigger(Pico::mTriggerId[i])){
+            isProdTrg = kTRUE;
+            break;
+         }
+      }
+      if(!isProdTrg) return kFALSE;
+      else{ 
+         return kTRUE;
+      }
   }
 
   bool isTrg = kFALSE;

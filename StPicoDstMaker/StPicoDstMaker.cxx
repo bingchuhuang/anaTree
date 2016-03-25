@@ -134,6 +134,7 @@ StPicoDstMaker::StPicoDstMaker(int mode, const char* fileName, const char* name)
     mInputFileName = fileName;
   }
   mEventCounter=0;
+  mnEvents=0;
 
   memset(mEmcIndex, 0, sizeof(mEmcIndex));
 
@@ -313,6 +314,7 @@ Int_t StPicoDstMaker::Finish(){
     closeWrite();
     if(mEmcMode) finishEmc();
   }
+  cout<<"passed events = "<<mnEvents<<endl;
   return kStOK;
 }
 //-----------------------------------------------------------------------
@@ -331,8 +333,8 @@ Int_t StPicoDstMaker::openRead() {
       inputStream.getline(line,512);
       string aFile = line;      
       if (inputStream.good() && aFile.find(".picoDst.root")!=string::npos) {
-//        TFile *ftmp = new TFile(line);
-        TFile *ftmp = TFile::Open(line);
+        
+         TFile *ftmp = TFile::Open(line);
         if(ftmp && ftmp->IsOpen() && ftmp->GetNkeys()) {
           LOG_INFO << " Read in picoDst file " << line << endm;
           mChain->Add(line);
@@ -541,6 +543,7 @@ Int_t StPicoDstMaker::MakeWrite() {
     LOG_WARN << " No MuEvent " << endm; return kStWarn;
   }
   mBTofHeader = mMuDst->btofHeader();
+  
 
   //////////////////////////////////////
   // select the right vertex using VPD
@@ -556,6 +559,7 @@ Int_t StPicoDstMaker::MakeWrite() {
       break;
     }
   }
+  if(!mPicoCut->passEvent(mMuEvent,mProdMode)) return kStOK; 
   /////////////////////////////////////
 
   if(mEmcMode){
@@ -574,7 +578,7 @@ Int_t StPicoDstMaker::MakeWrite() {
 
   LOG_DEBUG << " eventId = " << mMuEvent->eventId() << " refMult = " << refMult << " vtx = " << pVtx << endm;
 
-  if(mPicoCut->passEvent(mMuEvent)) {  // keep all events in pp collisions to monitor triggers
+  if(mPicoCut->passEvent(mMuEvent,mProdMode)) {  // keep all events in pp collisions to monitor triggers
 
     fillTracks();
 
@@ -595,9 +599,9 @@ Int_t StPicoDstMaker::MakeWrite() {
 
 //    if(mProdMode==minbias2) FillHistograms(mCentrality, mPhiWeightWrite);  // central data, not fill the phi weight anymore
     if(!mCreatingPhiWgt) {
+       mnEvents++;
       mTTree->Fill(); THack::IsTreeWritable(mTTree);
     }
-
   }
   else
     {
@@ -740,7 +744,7 @@ bool StPicoDstMaker::getBEMC(StMuTrack *t, int *id, int *adc, float *ene, float 
  
   if(ok && okBSMDE && okBSMDP) {
 
-  Int_t mod, eta, sub;
+  Int_t mod=0, eta=0, sub=0;
   StSPtrVecEmcPoint& bEmcPoints = mEmcCollection->barrelPoints();
   int index=0;
   float mindist=1.e9;
@@ -794,17 +798,17 @@ bool StPicoDstMaker::getBEMC(StMuTrack *t, int *id, int *adc, float *ene, float 
 
   //Get BEMC tower energy from matched tower + 2 nearest towers
 
-  int towerId;
+  int towerId = 0;
   int localTowerId = -1;
   int localId1 = -1;
   int localId2 = -1;
   double energy1 = 0, energy2 = 0;
-  double energyTemp;
+  double energyTemp = 0;
   double dist1 = 1000, dist2 = 1000;
-  double distTemp;
-  Float_t etaTemp, phiTemp;
+  double distTemp = 0;
+  Float_t etaTemp = 0, phiTemp = 0;
 
-  mEmcGeom[0]->getId(position.phi(),position.pseudoRapidity(),towerId);
+  if(mEmcGeom[0]->getId(position.phi(),position.pseudoRapidity(),towerId) == 1) return kTRUE;
   for(int ieta=-1;ieta<2;ieta++){
     for(int iphi=-1;iphi<2;iphi++){
       localTowerId++;//loops from 0 to 8
@@ -1169,7 +1173,7 @@ void StPicoDstMaker::fillMtdHits() {
       Int_t module  = hit->module();
       Int_t qt = mModuleToQT[backleg-1][module-1];
       Int_t pos = mModuleToQTPos[backleg-1][module-1];
-      if(qt>0 && pos>0 && triggerBit[qt-1][pos-1])
+      if(qt>0 && qt<=4 && pos>0 && triggerBit[qt-1][pos-1])
 	{
 	  triggerPos.push_back(qt*10+pos);
 	  hitIndex.push_back(i);
