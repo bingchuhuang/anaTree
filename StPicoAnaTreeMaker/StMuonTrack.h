@@ -14,6 +14,7 @@ class StDcaGeometry;
 #include <stdio.h>
 #include <math.h>
 #include "StEvent/StDcaGeometry.h"
+#include "PhysicalConstants.h"
 
 // Macro to control EMC variables
 #define EMCON 1
@@ -24,11 +25,11 @@ class StMuonTrack : public TObject {
  public:
   StMuonTrack();
   ~StMuonTrack();
-  StMuonTrack(StPicoDst *picoDst, StPicoTrack *t);
+  StMuonTrack(StPicoDst *picoDst, StPicoTrack *t, Int_t idx);
   virtual void Print(const Char_t *option = "") const;  ///< Print track info
             
   Int_t   id() const             { return (Int_t)mId; }
-  Float_t chi2() const           { return (Float_t)mChi2/1000.; }
+  //Float_t chi2() const           { return (Float_t)mChi2/1000.; }
   Float_t gPt() const;
   Float_t gEta() const;
   Float_t gPhi() const;
@@ -41,13 +42,13 @@ class StMuonTrack : public TObject {
   //Int_t   nHitsMapHFT() const    { return (Int_t)(mMap0 >> 1 & 0x7F); }
   //UInt_t  map0() const { return (UInt_t)mMap0; }
   //UInt_t  map1() const { return (UInt_t)mMap1; }
-  Float_t dEdx() const           { return (Float_t)mDedx/1000.; }
+  //Float_t dEdx() const           { return (Float_t)mDedx/1000.; }
   //Float_t tofMatchFlag() const   { return mTofMatchFlag; }
   Float_t beta() const           { return (Float_t)mBeta/20000.; }
   Float_t localY() const          {return (Float_t)mLocalY/1000.;}
   //Float_t localZ() const          {return (Float_t)mLocalZ/1000.;}
-  Float_t nSigmaPion() const     { return (Float_t)mNSigmaPion/100.; }
-  Float_t dca() const           { return (Float_t)mDca/10000.; }
+  Float_t nSigmaPion() const     { return (Float_t)mNSigmaPion/1000.; }
+  Float_t dca() const           { return (Float_t)abs(mDca)/10000.; }
   Float_t dcaXY() const           { return (Float_t)mDcaXY/10000.; }
   Float_t dcaZ() const           { return (Float_t)mDcaZ/10000.; }
   Int_t matchFlag() const      { return (Int_t)mMatchFlag;}
@@ -64,42 +65,29 @@ class StMuonTrack : public TObject {
 //  const Float_t* params() const     { return mPar; }
 //  const Float_t* errMatrix() const  { return mErrMatrix; }
 
-  StPhysicalHelixD helix() const;
-  //Bool_t isHFTTrack() const { return (nHitsMapHFT()>>0 & 0x1) && (nHitsMapHFT()>>1 & 0x3) && (nHitsMapHFT()>>3 & 0x3); }
-  Bool_t isHFTTrack() const { return mIsHft; }
+  StPhysicalHelixD helix(float bField) const;
+  Bool_t isHFTTrack() const { return mDca<0?true:false; }
           
  protected:
-  UShort_t mId;               // track Id
-  UShort_t mChi2;             // chi2*1000
+  Short_t mId;               // track Id
   StThreeVectorF mPMom;  // primary momentum, (0.,0.,0.) if none
   StThreeVectorF mGMom;
-  UShort_t mDedx;             // dEdx*1000
-  Short_t  mDca;              // dca * 10000
+  //UShort_t mDedx;             // dEdx*1000
+  Short_t  mDca;              // dca * 10000 * (isHFT?-1:1)
   Short_t  mDcaXY;            // dcaXY * 10000
   Short_t  mDcaZ;             // dcaZ * 10000
   Char_t   mNHitsFit;         // q*nHitsFit
   //Char_t   mNHitsMax;         // nHitsMax
   UChar_t  mNHitsDedx;        // nHitsDedx
-  Short_t  mNSigmaPion;       // nsigmaPi * 100
-  Char_t   mIsHft;
+  Short_t  mNSigmaPion;       // nsigmaPi * 1000
   //UInt_t   mMap0;             // TopologyMap data0 HFT + TPC
   //UInt_t   mMap1;             // TopologyMap data1 TPC + Others
-  
-  // a copy of the StMuTrack::dcaGeometry() parameters
-  //Float_t  mPar[6];                                            
-  //Float_t  mErrMatrix[15];
-  
-  Float_t   mCurv;
-  Float_t	mDip;
-  Float_t	mPhase;
   StThreeVectorF mOrigin;
-  Char_t	mH;
  
   // pidTraits
   //Char_t   mTofMatchFlag;
   UShort_t mBeta;  // *20000
   Short_t  mLocalY; // *1000
-  //Short_t  mLocalZ; // *1000
  
   // pidTraits
   Char_t   mMatchFlag;
@@ -154,10 +142,11 @@ inline StThreeVectorF StMuonTrack::gMom() const
 //  return dcaGeometry().helix();
 //}        
 
-inline StPhysicalHelixD StMuonTrack::helix() const
+inline StPhysicalHelixD StMuonTrack::helix(float bField) const
 {
-	  //dcaGeometry().helix();
-  	return StPhysicalHelixD(mCurv,mDip,mPhase,mOrigin,mH);
+  	//return StPhysicalHelixD(mCurv,mDip,mPhase,mOrigin,mH);
+  	return StPhysicalHelixD(mGMom,mOrigin,bField*kilogauss,charge());
 }        
+
 
 #endif

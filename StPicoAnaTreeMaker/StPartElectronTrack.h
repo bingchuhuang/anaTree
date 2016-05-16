@@ -20,7 +20,7 @@ class StPartElectronTrack : public TObject {
  public:
   StPartElectronTrack();
   ~StPartElectronTrack();
-  StPartElectronTrack(StPicoDst *picoDst, StPicoTrack *t);
+  StPartElectronTrack(StPicoDst *picoDst, StPicoTrack *t, Int_t idx);
   virtual void Print(const Char_t *option = "") const;  ///< Print track info
             
   Int_t   id() const             { return (Int_t)mId; }
@@ -36,30 +36,56 @@ class StPartElectronTrack : public TObject {
   Float_t beta() const           { return (Float_t)mBeta/20000.; }
   Float_t localY() const          {return (Float_t)mLocalY/1000.;}
   //Float_t localZ() const          {return (Float_t)mLocalZ/1000.;}
-  Float_t nSigmaElectron() const { return (Float_t)mNSigmaElectron/100.; }
-  Float_t dca() const           { return (Float_t)mDca/10000.; }
+  Float_t nSigmaElectron() const { return (Float_t)mNSigmaElectron/1000.; }
+  Float_t dca() const           { return (Float_t)abs(mDca)/10000.; }
   Float_t dcaXY() const           { return (Float_t)mDcaXY/10000.; }
   Float_t dcaZ() const           { return (Float_t)mDcaZ/10000.; }
+  
+  Short_t adc0() const          {return mBTOWADC0;}
+  Float_t e0() const             { return (Float_t)mBTOWE0/1000.;} 
+  Float_t e() const             { return (Float_t)mBTOWE/1000.;} 
+  Float_t pve() const; 
+  Float_t zDist() const          {return mBEMCDistZ/1000.;}
+  Float_t phiDist() const          {return mBEMCDistPhi/10000.;}
+  Float_t etaTowDist() const          {return mBTOWDistEta/10000.;}
+  Float_t phiTowDist() const          {return mBTOWDistPhi/10000.;}
+  UChar_t nEta() const          {return mBSMDNEta;}
+  UChar_t nPhi() const          {return mBSMDNPhi;}
+  Int_t towerId() const          {return mBTOWId;}
+  Int_t emcTriggerId() const          {return mEmcTrgId;}
+  void	setEmcTriggerId(Int_t id) 	{mEmcTrgId=id;}
 
-  Bool_t isHFTTrack() const { return mIsHft; }
+  Bool_t isHFTTrack() const { return mDca<0?true:false; }
 
  protected:
-  UShort_t mId;               // track Id
+  Short_t mId;               // track index in picoDst
   StThreeVectorF mPMom;       // primary momentum, (0.,0.,0.) if none
   StThreeVectorF mGMom;       // global momentum
-  Short_t  mDca;              // dca * 10000
+  Short_t  mDca;              // dca * 10000 * (isHFT?-1:1)
   Short_t  mDcaXY;              // dcaXY * 10000
   Short_t  mDcaZ;              // dcaZ * 10000
   Char_t   mNHitsFit;         // q*nHitsFit
-  //Char_t   mNHitsMax;         // nHitsMax
   UChar_t  mNHitsDedx;        // nHitsDedx
-  Short_t  mNSigmaElectron;   // nsigmaE * 100
-  Char_t   mIsHft;            // isHFT
+  Short_t  mNSigmaElectron;   // nsigmaE * 1000
   
   // pidTraits
   Short_t  mBeta;   // *20000
   Short_t  mLocalY; // *1000
-  //Short_t  mLocalZ; // *1000
+
+  // these variables are extracted from the standard BEMC cluster algorithm
+  Short_t  mBTOWADC0;         // adc0 higest adc in the cluster
+  Short_t  mBTOWE0;           // E0*1000 highest tower in the cluster
+  Short_t  mBTOWE;            // EMC point E*1000 
+  Short_t  mBEMCDistZ;        // z*1000
+  Short_t  mBEMCDistPhi;      // phi*10000
+  Short_t  mBTOWDistEta;      // eta*10000 distance between track and matched tower center
+  Short_t  mBTOWDistPhi;      // phi*10000 distance between track and matched tower center
+  UChar_t  mBSMDNEta;         // # of hits in eta
+  UChar_t  mBSMDNPhi;         // # of hits in phi
+
+  // these variables are purely from single tower or nearby towers  
+  Short_t  mBTOWId;           // projected tower Id 1-4800
+  Short_t  mEmcTrgId;
 
   friend class StPicoDst;
 

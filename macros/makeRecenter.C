@@ -8,7 +8,7 @@ class StMuDstMaker;
 
 
 StChain *chain;
-void makeAnaTree(const Int_t runnumber=15094070,
+void makeRecenter(const Int_t runnumber=15094070,
 		//    const Char_t *inputFile="/star/data54/reco/AuAu200_production_2011/FullField/P11id/2011/169/12169026/st_physics_adc_12169026_raw_4510001.MuDst.root",
 		//    const Char_t *inputFile="/star/data78/reco/pp200_production_2012/ReversedFullField/P12id/2012/040/13040016/st_physics_13040016_raw_1010001.MuDst.root",
 		//    const Char_t *inputFile="/star/data43/reco/pp500_production_2013/ReversedFullField/P14ia/2013/115/14115072/st_physics_14115072_raw_3690004.MuDst.root",
@@ -18,7 +18,7 @@ void makeAnaTree(const Int_t runnumber=15094070,
 		//    const Char_t *inputFile="/star/data79/reco/AuAu_200_production_low_2014/ReversedFullField/P15ic/2014/145/15145024/st_physics_15145024_raw_1000048.MuDst.root",
 		//    const Char_t *inputFile="root://xrdstar.rcf.bnl.gov:1095//home/starlib/home/starreco/reco/AuAu_200_production_low_2014/ReversedFullField/P15ic/2014/166/15166010/st_physics_15166010_raw_4500060.MuDst.root",
 		const Char_t *inputFile="root://xrdstar.rcf.bnl.gov:1095//home/starlib/home/starreco/reco/AuAu_200_production_mid_2014/ReversedFullField/P15ic/2014/094/15094070/st_physics_15094070_raw_0000007.MuDst.root",
-		const bool creatingPhiWgt = kFALSE, const int prodMod = 0, const int emcMode=1, const int prodType = 0
+		const bool creatingPhiWgt = kFALSE, const int prodMod = 0, const int emcMode=1, const int prodType = 0, const int doRecenter = 1
 		){
 	Int_t nEvents = 10000000;
 	//Int_t nEvents = 100;
@@ -155,25 +155,16 @@ void makeAnaTree(const Int_t runnumber=15094070,
 		mInputFileName.Append(inputFileName(i));
 	}
 
-	TString outputFile,outQAFile;
-	outQAFile=mInputFileName;
-	outQAFile.ReplaceAll("MuDst.root","qa.root");
-   StPicoQAMaker *qaMaker = new StPicoQAMaker("ana",picoMaker,outQAFile);
-   
-   TString outPurityFile=mInputFileName;
-   outPurityFile.ReplaceAll("MuDst.root","purity.root");
-   StPicoElecPurityMaker *ePurMaker = new StPicoElecPurityMaker("purity",picoMaker,outPurityFile);
-	
+   TString outputFile;
    outputFile=mInputFileName;
 	outputFile.ReplaceAll("MuDst.root","anaTree.root");
-	
 	StPicoAnaTreeMaker *treeMaker = new StPicoAnaTreeMaker(1,outputFile,picoMaker);
 	treeMaker->setTriggerSelection(prodMod); //0-mb, 1-ht, 2-mtd
 	if(prodMod==0){
 		treeMaker->setVzCut(-8,8);
 		treeMaker->setVzDiffCut(-4,4);
       treeMaker->setInputRunList("./runNumberList_run14AuAu200mb");
-      treeMaker->setInputRecenterFile("./recenter_correction.root");
+      if(!doRecenter) treeMaker->setInputRecenterFile("./recenter_correction.root");
       treeMaker->setPhoEPairMassCut(0.2);
 	}	
 	if(prodMod==1){
@@ -181,13 +172,13 @@ void makeAnaTree(const Int_t runnumber=15094070,
       //treeMaker->setDoEvtPlane(false); //default is true
       if(prodType==0){ // prod low and mid
          treeMaker->setInputRunList("./runNumberList_run14AuAu200mb");
-         treeMaker->setInputRecenterFile("./recenter_correction.root");
+         if(!doRecenter) treeMaker->setInputRecenterFile("./recenter_correction.root");
          treeMaker->setMaxRunId(1700);
       }
       if(prodType==1){ // prod high
          treeMaker->setInputRunList("./runNumberList_run14AuAu200ht_high");
-         treeMaker->setInputRecenterFile("./recenter_correction_ht_high.root");
-         treeMaker->setMaxRunId(1000); //need to check
+         if(!doRecenter) treeMaker->setInputRecenterFile("./recenter_correction_ht_high.root");
+         treeMaker->setMaxRunId(1000); 
       }
       treeMaker->setPhoEPairMassCut(0.24);
       treeMaker->setSaveHadron(true);
@@ -198,10 +189,11 @@ void makeAnaTree(const Int_t runnumber=15094070,
       //treeMaker->setInputRunList("./runNumberList_run14AuAu200");
       //treeMaker->setInputRecenterFile("./recenter_correction.root");
 	}
-   //treeMaker->setDoCalcRecenter(false);  //default is false
+   if(doRecenter){
+      treeMaker->setDoCalcRecenter(true);  //default is false
+   }
    treeMaker->setPartEnSigECut(-3.5,3);
    treeMaker->setPhoEPairDcaCut(1);
-
 
 	chain->Init();
 	cout<<"chain->Init();"<<endl;

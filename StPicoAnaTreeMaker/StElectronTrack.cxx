@@ -17,10 +17,9 @@
 ClassImp(StElectronTrack)
 
 //----------------------------------------------------------------------------------
-StElectronTrack::StElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.,0.,0.), mDedx(0),
+StElectronTrack::StElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
    mNHitsFit(0), mNHitsDedx(0), 
-   mNSigmaElectron(32768), mMap0(0),
-   mCurv(0), mDip(0), mPhase(0), mOrigin(0,0,0), mH(0), 
+   mNSigmaElectron(32768), mOrigin(0,0,0),
    mBeta(0), mLocalY(32768),
    mBTOWADC0(0), mBTOWE0(0), mBTOWE(0),
    mBEMCDistZ(32768), mBEMCDistPhi(32768), mBSMDNEta(0), mBSMDNPhi(0),
@@ -30,22 +29,22 @@ StElectronTrack::StElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
 }
 
 //----------------------------------------------------------------------------------
-StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
+StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
 {
-   mId        = (UShort_t)t->id();
+   mId        = idx;
    //mChi2      = (t->chi2() * 1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->chi2() * 1000.));
    mPMom = t->pMom();
    int q      = t->charge();
-   mDedx      = (t->dEdx()*1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->dEdx()*1000.));
+   //mDedx      = (t->dEdx()*1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->dEdx()*1000.));
    mNHitsFit  = t->nHitsFit()*q;
    //mNHitsMax  = t->nHitsMax();
    mNHitsDedx = (UChar_t)(t->nHitsDedx());
    //mNSigmaPion = (fabs(t->nSigmaPion() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaPion() * 100.));
    //mNSigmaKaon = (fabs(t->nSigmaKaon() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaKaon() * 100.));
    //mNSigmaProton = (fabs(t->nSigmaProton() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaProton() * 100.));
-   mNSigmaElectron = (fabs(t->nSigmaElectron() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 100.));
+   mNSigmaElectron = (fabs(t->nSigmaElectron() * 1000.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 1000.));
 
-   mMap0 = t->map0(); // see hitMap definition in StTrackTopologyMap
+   //mMap0 = t->map0(); // see hitMap definition in StTrackTopologyMap
    //mMap1 = t->map1();
    //const float* params = t->params();
    //const float* errMatrix = t->errMatrix();
@@ -54,12 +53,10 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
 
    StThreeVectorF vertexPos = picoDst->event()->primaryVertex();
    StPhysicalHelixD helix = t->helix();
-   mGMom = t->gMom(vertexPos,picoDst->event()->bField());
-   mOrigin = helix.origin();
-   mCurv = helix.curvature();
-   mDip = helix.dipAngle();
-   mPhase = helix.phase();
-   mH = helix.h();
+   //mCurv = helix.curvature();
+   //mDip = helix.dipAngle();
+   //mPhase = helix.phase();
+   //mH = helix.h();
    StThreeVectorF dcaPoint = helix.at(helix.pathLength(vertexPos.x(), vertexPos.y()));
    float dcaZ = (dcaPoint.z() - vertexPos.z())*10000.;
    float dcaXY = (helix.geometricSignedDistance(vertexPos.x(),vertexPos.y()))*10000.;
@@ -68,7 +65,11 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
 
    double thePath = helix.pathLength(vertexPos);
    StThreeVectorF dcaPos = helix.at(thePath);
+   mGMom = helix.momentumAt(thePath,picoDst->event()->bField()*kilogauss);
+   mOrigin = dcaPos;
    mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
+   bool isHft = t->isHFTTrack();
+   if(isHft) mDca *= -1;
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){
@@ -97,6 +98,8 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
       mBEMCDistPhi = emcPid->phiDist()*10000;
       mBSMDNEta = emcPid->nEta();
       mBSMDNPhi = emcPid->nPhi();
+      mBTOWDistEta = emcPid->etaTowDist()*10000;
+      mBTOWDistPhi = emcPid->phiTowDist()*10000;
 
       mBTOWId = emcPid->btowId();
       mEmcTrgId = -1;
@@ -108,10 +111,11 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
       mBEMCDistPhi = 32768;
       mBSMDNEta = 0;
       mBSMDNPhi = 0;
+      mBTOWDistEta = 32768;
+      mBTOWDistPhi = 32768;
 
       mBTOWId = 0;
       mEmcTrgId = -1;
-
    }
 }
 

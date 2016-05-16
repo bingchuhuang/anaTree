@@ -17,10 +17,13 @@
 ClassImp(StPartElectronTrack)
 
    //----------------------------------------------------------------------------------
-StPartElectronTrack::StPartElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
+StPartElectronTrack::StPartElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
    mNHitsFit(0), mNHitsDedx(0), 
-   mNSigmaElectron(32768), mIsHft(0),
-   mBeta(0), mLocalY(32768)
+   mNSigmaElectron(32768),
+   mBeta(0), mLocalY(32768),
+   mBTOWADC0(0), mBTOWE0(0), mBTOWE(0),
+   mBEMCDistZ(32768), mBEMCDistPhi(32768), mBSMDNEta(0), mBSMDNPhi(0),
+   mBTOWId(0),  mEmcTrgId(-1)
 {
 
 }
@@ -29,23 +32,20 @@ StPartElectronTrack::StPartElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.
 // t - the global track.  p - the associated primary track from the first primary vertex
 /////////////////////////////////////////////////////////////////////////////////////////
 //----------------------------------------------------------------------------------
-   StPartElectronTrack::StPartElectronTrack(StPicoDst *picoDst, StPicoTrack* t)
-: mId(0), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
+   StPartElectronTrack::StPartElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
+: mId(idx), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
    mNHitsFit(0), mNHitsDedx(0), 
-   mNSigmaElectron(32768), mIsHft(0),
+   mNSigmaElectron(32768),
    mBeta(0), mLocalY(32768)
 {
-   mId        = (UShort_t)t->id();
    mPMom = t->pMom();
    int q      = t->charge();
    //mDedx      = (t->dEdx()*1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->dEdx()*1000.));
    mNHitsFit  = t->nHitsFit()*q;
    //mNHitsMax  = t->nHitsMax();
    mNHitsDedx = (UChar_t)(t->nHitsDedx());
-   mNSigmaElectron = (fabs(t->nSigmaElectron() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 100.));
+   mNSigmaElectron = (fabs(t->nSigmaElectron() * 1000.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 1000.));
 
-   Int_t nHitsMapHFT = Int_t(t->map0()>>1 & 0x7f);
-   mIsHft = (nHitsMapHFT>>0 & 0x1) && (nHitsMapHFT>>1 & 0x3) && (nHitsMapHFT>>3 & 0x3);
 
    StThreeVectorF vertexPos = picoDst->event()->primaryVertex();
    StPhysicalHelixD helix = t->helix();
@@ -59,6 +59,8 @@ StPartElectronTrack::StPartElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.
    double thePath = helix.pathLength(vertexPos);
    StThreeVectorF dcaPos = helix.at(thePath);
    mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
+   bool isHft = t->isHFTTrack();
+   if(isHft) mDca *= -1;
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){
@@ -75,6 +77,36 @@ StPartElectronTrack::StPartElectronTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.
          beta = L/(tof*(c_light/1.0e9));
       }
       mBeta = (UShort_t)(beta*20000);
+   }
+
+   int index2EmcPid = t->emcPidTraitsIndex();
+   if (index2EmcPid>=0){
+      StPicoEmcPidTraits *emcPid = picoDst->emcPidTraits(index2EmcPid);
+      mBTOWADC0 = emcPid->adc0();
+      mBTOWE0 = emcPid->e0()*1000;
+      mBTOWE = emcPid->e()*1000;
+      mBEMCDistZ = emcPid->zDist()*1000;
+      mBEMCDistPhi = emcPid->phiDist()*10000;
+      mBSMDNEta = emcPid->nEta();
+      mBSMDNPhi = emcPid->nPhi();
+      mBTOWDistEta = emcPid->etaTowDist()*10000;
+      mBTOWDistPhi = emcPid->phiTowDist()*10000;
+
+      mBTOWId = emcPid->btowId();
+      mEmcTrgId = -1;
+   }else{
+      mBTOWADC0 = 0;
+      mBTOWE0 = 0;
+      mBTOWE = 0;
+      mBEMCDistZ = 32768;
+      mBEMCDistPhi = 32768;
+      mBSMDNEta = 0;
+      mBSMDNPhi = 0;
+      mBTOWDistEta = 32768;
+      mBTOWDistPhi = 32768;
+
+      mBTOWId = 0;
+      mEmcTrgId = -1;
    }
 }
 

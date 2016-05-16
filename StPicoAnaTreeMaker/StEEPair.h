@@ -21,7 +21,7 @@ class StEEPair : public TObject {
   StEEPair();
   ~StEEPair();
 	StEEPair(Char_t mType, Short_t dauIndex1, Short_t dauIndex2, Float_t  dauDcaDist,
-        Float_t  pairDcaToVtx, Float_t  cosThetaStar, Float_t  pointingAngle, Float_t  pairPhiV, 
+        Float_t  pairDcaToVtx, Float_t  pointingAngle, Float_t  pairPhiV, 
 		Float_t  pairPt, Float_t  pairEta, Float_t  pairPhi, Float_t  pairMass,  
 		Float_t  pairPMass,  
 		Float_t pairCtau, Float_t pairOx, Float_t pairOy, Float_t pairOz
@@ -32,9 +32,9 @@ class StEEPair : public TObject {
   Int_t   type() const             { return (Int_t)mType; }
   Int_t   dauIndex1() const             { return (Int_t)mDauIndex1; }
   Int_t   dauIndex2() const             { return (Int_t)mDauIndex2; }
-  Float_t  pairDca()      const          { return (Float_t)mDauDcaDist/1000.; }  /// dca between two daughters at pair decay point
+  Float_t  pairDca()      const          { return (Float_t)mDauDcaDist/10000.; }  /// dca between two daughters at pair decay point
 
-  Float_t  pairPt() const			{return mPairPt/1000;}
+  Float_t  pairPt() const			{return mPairPt/1000.;}
   Float_t  pairEta() const              { return mPairEta/10000.;}
   Float_t  pairPhi() const              { return mPairPhi/10000.;}
   Float_t  pairMass() const              { return (Float_t)mPairMass/1000.;}
@@ -50,7 +50,7 @@ class StEEPair : public TObject {
   StThreeVectorF pairOrigin() const;
 
   //StThreeVectorF pairPMom() const;
-  Float_t  cosThetaStar() const              { return mCosThetaStar/10000.;}
+  //Float_t  cosThetaStar() const              { return mCosThetaStar/10000.;}
   Float_t  pointingAngle() const              { return mPointingAngle/10000.;}
   Float_t  pairPhiV() const              { return mPairPhiV/10000.;}
   Float_t  pairDcaToVtx()      const       { return (Float_t)mPairDcaToVtx; }
@@ -63,10 +63,10 @@ class StEEPair : public TObject {
 
   //Short_t  mDauDcaToVtx1; // *1000
   //Short_t  mDauDcaToVtx2;// *1000
-  Short_t  mDauDcaDist;// *1000
+  Short_t  mDauDcaDist;// *10000
 
   Float_t  mPairDcaToVtx;
-  Short_t  mCosThetaStar; // *10000
+  //Short_t  mCosThetaStar; // *10000
   Short_t  mPointingAngle; // *10000
   Short_t  mPairPhiV; // *10000
 

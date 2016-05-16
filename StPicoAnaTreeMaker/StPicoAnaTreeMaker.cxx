@@ -319,7 +319,9 @@ void StPicoAnaTreeMaker::openRead() {
 //-----------------------------------------------------------------------
 void StPicoAnaTreeMaker::openWrite() {
 
-	if(mCalcRecenter) mOutputFileName.ReplaceAll(".root",".recenter.root");
+	if(mCalcRecenter){ 
+      mOutputFileName.ReplaceAll(".root",".recenter.root");
+   }
 	mOutputFile = new TFile(mOutputFileName.Data(),"RECREATE");
 	LOG_INFO << " Output file: " << mOutputFileName.Data() << " created." << endm;
 	mOutputFile->SetCompressionLevel(mCompression);
@@ -439,7 +441,7 @@ void StPicoAnaTreeMaker::declareHistos() {
 	sinfareast_correction = new TProfile2D("sincorrect_fareast","sincorrect_fareast",mNMaxRunId,0,mNMaxRunId,mNMaxCentrality,0,mNMaxCentrality);
 
 	TFile f(mRecenterFile.Data());
-	if(f.IsOpen())
+	if(f.IsOpen()&&!mCalcRecenter)
 	{
 		cout<<"reading "<<mRecenterFile.Data()<<endl;
 		TProfile2D *temp_cos_farwest = (TProfile2D*)f.Get("etapluszplusQx");
@@ -887,7 +889,7 @@ void StPicoAnaTreeMaker::fillTracks() {
       //primary e
 		if(fElecFlag>0){
 			int counter = mAnaTreeArrays[anaTreeETrack]->GetEntries();
-			new((*(mAnaTreeArrays[anaTreeETrack]))[counter]) StElectronTrack(mPicoDst,t);
+			new((*(mAnaTreeArrays[anaTreeETrack]))[counter]) StElectronTrack(mPicoDst,t,i);
 		}
 
       //partener e
@@ -898,14 +900,14 @@ void StPicoAnaTreeMaker::fillTracks() {
 		//muon
 		if(isMuon(t)){ 
 			int counter = mAnaTreeArrays[anaTreeMuTrack]->GetEntries();
-			new((*(mAnaTreeArrays[anaTreeMuTrack]))[counter]) StMuonTrack(mPicoDst,t);
+			new((*(mAnaTreeArrays[anaTreeMuTrack]))[counter]) StMuonTrack(mPicoDst,t,i);
 		}
 
       // save hadrons
 		if(mSaveHadron){
 			if(isHadron(t)){ 
 				int counter = mAnaTreeArrays[anaTreeHTrack]->GetEntries();
-				new((*(mAnaTreeArrays[anaTreeHTrack]))[counter]) StHadronTrack(mPicoDst,t);
+				new((*(mAnaTreeArrays[anaTreeHTrack]))[counter]) StHadronTrack(mPicoDst,t,i);
 			}
 		}
 	}
@@ -937,7 +939,7 @@ void StPicoAnaTreeMaker::fillPairs() {
 
       if(isPhoton){ 
 			int counter = mAnaTreeArrays[anaTreePartETrack]->GetEntries();
-			new((*(mAnaTreeArrays[anaTreePartETrack]))[counter]) StPartElectronTrack(mPicoDst,eTrk1);
+			new((*(mAnaTreeArrays[anaTreePartETrack]))[counter]) StPartElectronTrack(mPicoDst,eTrk1,idx);
          index++;
       }
 	}
@@ -1005,11 +1007,13 @@ void StPicoAnaTreeMaker::fillEmcTrigger() {
 		}
 		int counter = mAnaTreeArrays[anaTreeEmcTrigger]->GetEntries();
 		new((*(mAnaTreeArrays[anaTreeEmcTrigger]))[counter]) StEmcTrigger(flag,trgId,adc,eId,adc0);
+
 		if(eId>=0&&eId<60000) {
 			StElectronTrack *eTrk = (StElectronTrack*)mAnaTree->eTrack(eId);
 			eTrk->setEmcTriggerId(counter);
 			mhAdc0vsP->Fill(pMat,adc0);
 			mhAdc0vsE->Fill(eMat,adc0);
+         mAnaTree->emcTrigger(counter)->setEId(eId);
 		}
 		mhDsmAdcvsAdc0->Fill(adc0,adc);
 		mhDsmAdcvsP->Fill(pMat,adc);
@@ -1192,10 +1196,10 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 	/* EMC+TPC electron PID*/
 	int index2EmcPid = t->emcPidTraitsIndex();
 	Float_t e = -999., zDist = -999., phiDist = -999., nEta = 0, nPhi = 0;
-   StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(), mPicoDst->event()->bField());
-	Float_t p = gMom.mag();
-	Float_t pt = gMom.perp();
-	Float_t eta = gMom.pseudoRapidity();
+   //StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(), mPicoDst->event()->bField());
+	Float_t p = t->gPtot();
+	Float_t pt = t->gPt();
+	//Float_t eta = gMom.pseudoRapidity();
 	Float_t nSigE = t->nSigmaElectron();
 	if (index2EmcPid>=0){
 		StPicoEmcPidTraits *emcPid = mPicoDst->emcPidTraits(index2EmcPid);
@@ -1230,7 +1234,7 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 
 	if((pt<mEmcEPtCut[0]||pt>mEmcEPtCut[1])&&(ppt<mEmcEPtCut[0]||ppt>mEmcEPtCut[1])) return false;
 	mhnTracks->Fill(15);
-	if((eta<mEmcEEtaCut[0]||eta>mEmcEEtaCut[1])&&(peta<mEmcEEtaCut[0]||peta>mEmcEEtaCut[1])) return false;
+	//if((eta<mEmcEEtaCut[0]||eta>mEmcEEtaCut[1])&&(peta<mEmcEEtaCut[0]||peta>mEmcEEtaCut[1])) return false;
 	mhnTracks->Fill(16);
 	if((pve<mEmcEPveCut[0]||pve>mEmcEPveCut[1])&&(ppve<mEmcEPveCut[0]||ppve>mEmcEPveCut[1])) return false;
 	mhnTracks->Fill(17);
@@ -1287,9 +1291,10 @@ Bool_t StPicoAnaTreeMaker::isMuon(StPicoTrack* t)
 	int mod = -1;
 	if(backleg>0&&module>0) mod = (backleg-1)*5+module;
 
-	Float_t p = t->pMom().mag();
-	Float_t pt = t->pMom().perp();
-	Float_t eta = t->pMom().pseudoRapidity();
+   StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(),mPicoDst->event()->bField());
+	Float_t p = gMom.mag();
+	Float_t pt = gMom.perp();
+	Float_t eta = gMom.pseudoRapidity();
 	Float_t nSigPi = t->nSigmaPion();
 
 	if(pt<mMuPtCut[0] || pt>mMuPtCut[1]) return false;
@@ -1326,17 +1331,16 @@ Bool_t StPicoAnaTreeMaker::isMuon(StPicoTrack* t)
 //-------------------------------------------------------------
 Bool_t StPicoAnaTreeMaker::isHadron(StPicoTrack* t)
 {
-   StThreeVectorF pMom = t->pMom();
-   double ppt = -999.;
-   if(pMom.mag()>1e-5){ 
-      ppt = pMom.perp();
-   }
+   //StThreeVectorF pMom = t->pMom();
+   //double ppt = -999.;
+   //if(pMom.mag()>1e-5){ 
+   //   ppt = pMom.perp();
+   //}
    
-   StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(),mPicoDst->event()->bField());
-	double pt = gMom.perp();
+   //StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(),mPicoDst->event()->bField());
+	double pt = t->gPt();
 
-	if((pt<0.3||pt>mPtCut[1])&&(ppt<0.3||ppt>mPtCut[1])) return false;
-   return true;
+   return pt>0.3 && pt<mPtCut[1];
 }
 //---------------------------------------------------------------
 Bool_t StPicoAnaTreeMaker::passEEPair(StElectronTrack *t1, StElectronTrack *t2, Int_t index1, Int_t index2)
@@ -1351,52 +1355,12 @@ Bool_t StPicoAnaTreeMaker::passEEPair(StElectronTrack *t1, StElectronTrack *t2, 
    if(q1==-1&&q2==-1) type = 3;
 	Float_t dauPt1 = t1->gPt();
 	Float_t dauPt2 = t2->gPt();
-	/*
-	Char_t dauCharge1 = t1->charge(); 
-	Char_t dauCharge2 = t2->charge();
-	Float_t dauEta1 = t1->gEta();
-	Float_t dauEta2 = t2->gEta();
-	Float_t dauPhi1 = t1->gPhi();
-	Float_t dauPhi2 = t2->gPhi();
-   bool isHft1 = t1->isHFTTrack();
-	bool isHft2 = t2->isHFTTrack();
 
-	Float_t beta1 = t1->beta();
-	Float_t beta2 = t2->beta();
-	Float_t invBeta1 = -999, invBeta2 = -999;
-	if(beta1!=0) invBeta1 = 1./beta1; 
-	if(beta2!=0) invBeta2 = 1./beta2; 
+	float bField = mPicoDst->event()->bField();
+	StPhysicalHelixD helix1 = t1->helix(bField);
+	StPhysicalHelixD helix2 = t2->helix(bField);
+	
 
-	Float_t nSigE1 = t1->nSigmaElectron();
-	Float_t nSigE2 = t2->nSigmaElectron();
-
-	Float_t pve1 = t1->pve();
-	Float_t pve2 = t2->pve();
-	Float_t zDist1 = t1->zDist();
-	Float_t zDist2 = t2->zDist();
-	Float_t phiDist1 = t1->phiDist();
-	Float_t phiDist2 = t2->phiDist();
-	UChar_t nEta1 = t1->nEta();
-	UChar_t nEta2 = t2->nEta();
-	UChar_t nPhi1 = t1->nPhi();
-	UChar_t nPhi2 = t2->nPhi();
-	Int_t isBsmd1 = 0, isBsmd2 = 0;
-	if(nEta1>mEnEtaCut[0] && nEta1<mEnEtaCut[1]
-			&& nPhi1>mEnPhiCut[0] && nPhi1>mEnPhiCut[1]
-			&& zDist1>mEZDistCut[0] && zDist1<mEZDistCut[1]
-			&& phiDist1>mEPhiDistCut[0] && phiDist1<mEPhiDistCut[1]){
-		isBsmd1 = 1;
-	}
-	if(nEta2>mEnEtaCut[0] && nEta2<mEnEtaCut[1]
-			&& nPhi2>mEnPhiCut[0] && nPhi2>mEnPhiCut[1]
-			&& zDist2>mEZDistCut[0] && zDist2<mEZDistCut[1]
-			&& phiDist2>mEPhiDistCut[0] && phiDist2<mEPhiDistCut[1]){
-		isBsmd2 = 1;
-	}
-   */
-
-	StPhysicalHelixD helix1 = t1->helix();
-	StPhysicalHelixD helix2 = t2->helix();
 	StThreeVectorF vertexPos = mPicoDst->event()->primaryVertex();
 	Double_t thePath1 = helix1.pathLength(vertexPos);
 	Double_t thePath2 = helix2.pathLength(vertexPos);
@@ -1404,14 +1368,13 @@ Bool_t StPicoAnaTreeMaker::passEEPair(StElectronTrack *t1, StElectronTrack *t2, 
 	StThreeVectorF dcaPos2 = helix2.at(thePath2);
 	Float_t dauDcaToVtx1 = (dcaPos1-vertexPos).mag();
 	Float_t dauDcaToVtx2 = (dcaPos2-vertexPos).mag();
-
+   
 	pairD s = helix1.pathLengths(helix2);
 	StThreeVectorF pos1 = helix1.at(s.first);
 	StThreeVectorF pos2 = helix2.at(s.second);
 	StThreeVectorF pairPos = (pos1+pos2)/2.;
 	Float_t dauDcaDist = (pos2-pos1).mag();
 
-	float bField = mPicoDst->event()->bField();
 	StThreeVectorF mom1 = helix1.momentumAt(s.first,bField*kilogauss);
 	StThreeVectorF mom2 = helix2.momentumAt(s.second,bField*kilogauss);
 	StLorentzVectorF dau1(mom1,mom1.massHypothesis(ElectronMass));
@@ -1450,9 +1413,9 @@ Bool_t StPicoAnaTreeMaker::passEEPair(StElectronTrack *t1, StElectronTrack *t2, 
 	}
 
 	// calculate cosThetaStar
-	StLorentzVectorF const pairMomReverse(-pair.px(), -pair.py(), -pair.pz(), pair.e());
-	StLorentzVectorF const dau1MomStar = dau1.boost(pairMomReverse);
-	Float_t cosThetaStar = std::cos(dau1MomStar.vect().angle(pair.vect()));
+	//StLorentzVectorF const pairMomReverse(-pair.px(), -pair.py(), -pair.pz(), pair.e());
+	//StLorentzVectorF const dau1MomStar = dau1.boost(pairMomReverse);
+	//Float_t cosThetaStar = std::cos(dau1MomStar.vect().angle(pair.vect()));
 
 	int rndSeed = (int)(dauPt1+dauPt2)*1000;
 	gRandom->SetSeed(rndSeed);
@@ -1484,7 +1447,7 @@ Bool_t StPicoAnaTreeMaker::passEEPair(StElectronTrack *t1, StElectronTrack *t2, 
 
 	int counter = mAnaTreeArrays[anaTreeEEPair]->GetEntries();
 	new((*(mAnaTreeArrays[anaTreeEEPair]))[counter]) StEEPair(type, index1,  index2, dauDcaDist,
-			pairDcaToVtx, cosThetaStar,   pointingAngle,   pairPhiV,   
+			pairDcaToVtx, pointingAngle,   pairPhiV,   
 			pairPt,   pairEta,   pairPhi,   pairMass, 
 			pairPMass, 
 			//pairPPt,   pairPEta,   pairPPhi,   pairPMass, 
@@ -1511,15 +1474,15 @@ Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, I
 
    if(id1==id2) return false;
 
+	float bField = mPicoDst->event()->bField();
    StPhysicalHelixD helix1 = t1->helix();
-	StPhysicalHelixD helix2 = t2->helix();
+	StPhysicalHelixD helix2 = t2->helix(bField);
 	pairD s = helix1.pathLengths(helix2);
 	StThreeVectorF pos1 = helix1.at(s.first);
 	StThreeVectorF pos2 = helix2.at(s.second);
 	StThreeVectorF pairPos = (pos1+pos2)/2.;
 	Float_t dauDcaDist = (pos2-pos1).mag();
 
-	float bField = mPicoDst->event()->bField();
 	StThreeVectorF mom1 = helix1.momentumAt(s.first,bField*kilogauss);
 	StThreeVectorF mom2 = helix2.momentumAt(s.second,bField*kilogauss);
 	StLorentzVectorF dau1(mom1,mom1.massHypothesis(ElectronMass));
@@ -1593,8 +1556,9 @@ Bool_t StPicoAnaTreeMaker::passEMuPair(StElectronTrack *t1, StMuonTrack *t2, Int
    if(q1==1&&q2==1)   type = 3;
    if(q1==-1&&q2==-1) type = 4;
 
-	StPhysicalHelixD helix1 = t1->helix();
-	StPhysicalHelixD helix2 = t2->helix();
+	float bField = mPicoDst->event()->bField();
+	StPhysicalHelixD helix1 = t1->helix(bField);
+	StPhysicalHelixD helix2 = t2->helix(bField);
 	StThreeVectorF vertexPos = mPicoDst->event()->primaryVertex();
 
 	pairD s = helix1.pathLengths(helix2);
@@ -1603,7 +1567,6 @@ Bool_t StPicoAnaTreeMaker::passEMuPair(StElectronTrack *t1, StMuonTrack *t2, Int
 	StThreeVectorF pairPos = (pos1+pos2)/2.;
 	Float_t dauDcaDist = (pos2-pos1).mag();
 
-	float bField = mPicoDst->event()->bField();
 	StThreeVectorF mom1 = helix1.momentumAt(s.first,bField*kilogauss);
 	StThreeVectorF mom2 = helix2.momentumAt(s.second,bField*kilogauss);
 	StLorentzVectorF dau1(mom1,mom1.massHypothesis(ElectronMass));
@@ -1647,8 +1610,9 @@ Bool_t StPicoAnaTreeMaker::passMuMuPair(StMuonTrack *t1, StMuonTrack *t2, Int_t 
    if(q1==1&&q2==1) type = 2;
    if(q1==-1&&q2==-1) type = 3;
 
-	StPhysicalHelixD helix1 = t1->helix();
-	StPhysicalHelixD helix2 = t2->helix();
+	float bField = mPicoDst->event()->bField();
+	StPhysicalHelixD helix1 = t1->helix(bField);
+	StPhysicalHelixD helix2 = t2->helix(bField);
 	StThreeVectorF vertexPos = mPicoDst->event()->primaryVertex();
 	Double_t thePath1 = helix1.pathLength(vertexPos);
 	Double_t thePath2 = helix2.pathLength(vertexPos);
@@ -1663,7 +1627,6 @@ Bool_t StPicoAnaTreeMaker::passMuMuPair(StMuonTrack *t1, StMuonTrack *t2, Int_t 
 	StThreeVectorF pairPos = (pos1+pos2)/2.;
 	Float_t dauDcaDist = (pos2-pos1).mag();
 
-	float bField = mPicoDst->event()->bField();
 	StThreeVectorF mom1 = helix1.momentumAt(s.first,bField*kilogauss);
 	StThreeVectorF mom2 = helix2.momentumAt(s.second,bField*kilogauss);
 	StLorentzVectorF dau1(mom1,mom1.massHypothesis(MuonMass));
@@ -1702,13 +1665,13 @@ Bool_t StPicoAnaTreeMaker::passMuMuPair(StMuonTrack *t1, StMuonTrack *t2, Int_t 
 	}
 
 	// calculate cosThetaStar
-	StLorentzVectorF const pairMomReverse(-pair.px(), -pair.py(), -pair.pz(), pair.e());
-	StLorentzVectorF const dau1MomStar = dau1.boost(pairMomReverse);
-	Float_t cosThetaStar = std::cos(dau1MomStar.vect().angle(pair.vect()));
+	//StLorentzVectorF const pairMomReverse(-pair.px(), -pair.py(), -pair.pz(), pair.e());
+	//StLorentzVectorF const dau1MomStar = dau1.boost(pairMomReverse);
+	//Float_t cosThetaStar = std::cos(dau1MomStar.vect().angle(pair.vect()));
 
 	int counter = mAnaTreeArrays[anaTreeMuMuPair]->GetEntries();
 	new((*(mAnaTreeArrays[anaTreeMuMuPair]))[counter]) StMuMuPair((Char_t) type, (Short_t)index1, (Short_t)index2, dauDcaDist,
-			pairDcaToVtx,   cosThetaStar,   pointingAngle,   
+			pairDcaToVtx,   pointingAngle,   
 			pairPt,   pairEta,   pairPhi,   pairMass, 
 			pairPPt,   pairPEta,   pairPPhi,   pairPMass, 
 			pairCtau, pairPos.x(), pairPos.y(), pairPos.z());

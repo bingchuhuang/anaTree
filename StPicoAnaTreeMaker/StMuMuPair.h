@@ -21,7 +21,7 @@ class StMuMuPair : public TObject {
       StMuMuPair();
       ~StMuMuPair();
       StMuMuPair(Char_t type, Short_t dauIndex1, Short_t dauIndex2, Float_t  dauDcaDist,
-      Float_t  pairDcaToVtx, Float_t  cosThetaStar, Float_t  pointingAngle, 
+      Float_t  pairDcaToVtx, Float_t  pointingAngle, 
       Float_t  pairPt, Float_t  pairEta, Float_t  pairPhi, Float_t  pairMass,  
       Float_t  pairPPt, Float_t  pairPEta, Float_t  pairPPhi, Float_t  pairPMass,  
       Float_t pairCtau, Float_t pairOx, Float_t pairOy, Float_t pairOz
@@ -50,7 +50,7 @@ class StMuMuPair : public TObject {
       StThreeVectorF pairOrigin() const;
 
       StThreeVectorF pairPMom() const;
-      Float_t  cosThetaStar() const              { return mCosThetaStar/10000.;}
+      //Float_t  cosThetaStar() const              { return mCosThetaStar/10000.;}
       Float_t  pointingAngle() const              { return mPointingAngle/10000.;}
       Float_t  pairDcaToVtx()      const       { return (Float_t)mPairDcaToVtx; }
       Float_t  pairCtau()      const       { return (Float_t)mPairCtau; }
@@ -63,7 +63,7 @@ class StMuMuPair : public TObject {
       Short_t  mDauDcaDist;// *1000
 
       Float_t  mPairDcaToVtx;
-      Short_t  mCosThetaStar; // *10000
+      //Short_t  mCosThetaStar; // *10000
       Short_t  mPointingAngle; // *10000
 
       // global 

@@ -13,7 +13,7 @@ ClassImp(StPhoEEPair)
     //----------------------------------------------------------------------------------
 StPhoEEPair::StPhoEEPair()
     : mType(0), mPrimEIndex(-1), mPartEIndex(-1),
-	mDauDcaDist(0), mPairPhiV(-999.),
+	mDauDcaDist(32768), mPairPhiV(32768),
 mPairPt(0),mPairEta(0),mPairPhi(0),mPairMass(0), 
    mPairPMass(0),
 	mPairOx(0),mPairOy(0),mPairOz(0)

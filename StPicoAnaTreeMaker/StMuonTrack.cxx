@@ -18,11 +18,11 @@
 ClassImp(StMuonTrack)
 
 //----------------------------------------------------------------------------------
-StMuonTrack::StMuonTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.,0.,0.), mDedx(0), 
+StMuonTrack::StMuonTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.), 
    mDca(0), mDcaXY(0), mDcaZ(0),
    mNHitsFit(0), mNHitsDedx(0), 
-   mNSigmaPion(32768), mIsHft(0), /*mMap0(0), mMap1(0), */
-   mCurv(0), mDip(0), mPhase(0), mOrigin(0,0,0), mH(0), 
+   mNSigmaPion(32768),
+   mOrigin(0,0,0),
    mBeta(0), mLocalY(32768), 
    mMatchFlag(0), mChannel(0), mdT(32768),mdY(32768), mdZ(32768),mTriggerFlag(-1)
 {
@@ -30,20 +30,18 @@ StMuonTrack::StMuonTrack() : mId(0), mPMom(0., 0., 0.), mGMom(0.,0.,0.), mDedx(0
 }
 
 //----------------------------------------------------------------------------------
-StMuonTrack::StMuonTrack(StPicoDst *picoDst, StPicoTrack* t)
+StMuonTrack::StMuonTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
 {
-   mId        = (UShort_t)t->id();
+   mId        = idx;
    //mChi2      = (t->chi2() * 1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->chi2() * 1000.));
    mPMom = t->pMom();
    int q      = t->charge();
-   mDedx      = (t->dEdx()*1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->dEdx()*1000.));
+   //mDedx      = (t->dEdx()*1000. > 65536) ? 65536 : (UShort_t)(TMath::Nint(t->dEdx()*1000.));
    mNHitsFit  = t->nHitsFit()*q;
    //mNHitsMax  = t->nHitsMax();
    mNHitsDedx = (UChar_t)(t->nHitsDedx());
-   mNSigmaPion = (fabs(t->nSigmaPion() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaPion() * 100.));
+   mNSigmaPion = (fabs(t->nSigmaPion() * 1000.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaPion() * 1000.));
 
-   Int_t nHitsMapHFT = Int_t(t->map0()>>1 & 0x7f);
-   mIsHft = (nHitsMapHFT>>0 & 0x1) && (nHitsMapHFT>>1 & 0x3) && (nHitsMapHFT>>3 & 0x3);
    //mMap0 = t->map0(); // see hitMap definition in StTrackTopologyMap
    //mMap1 = t->map1();
    //const float* params = t->params();
@@ -53,12 +51,6 @@ StMuonTrack::StMuonTrack(StPicoDst *picoDst, StPicoTrack* t)
 
    StThreeVectorF vertexPos = picoDst->event()->primaryVertex();
    StPhysicalHelixD helix = t->helix();
-   mGMom = t->gMom(vertexPos,picoDst->event()->bField());
-   mOrigin = helix.origin();
-   mCurv = helix.curvature();
-   mDip = helix.dipAngle();
-   mPhase = helix.phase();
-   mH = helix.h();
 
    StThreeVectorF dcaPoint = helix.at(helix.pathLength(vertexPos.x(), vertexPos.y()));
    float dcaZ = (dcaPoint.z() - vertexPos.z())*10000.;
@@ -68,7 +60,11 @@ StMuonTrack::StMuonTrack(StPicoDst *picoDst, StPicoTrack* t)
 
    double thePath = helix.pathLength(vertexPos);
    StThreeVectorF dcaPos = helix.at(thePath);
+   mGMom = helix.momentumAt(thePath,picoDst->event()->bField()*kilogauss);
+   mOrigin = dcaPos;
    mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
+   bool isHft = t->isHFTTrack();
+   if(isHft) mDca *= -1;
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){
@@ -113,9 +109,7 @@ void StMuonTrack::Print(const Char_t *option) const
 {
    if (strcmp(option, "tpc") == 0 || strcmp(option, "") == 0)
    {
-      LOG_INFO << "id=" << id()
-         << " chi2=" << chi2()
-         << endm;
+      LOG_INFO << "id=" << id() <<endm;
       LOG_INFO << "pMom=" << pMom() << endm;
       LOG_INFO << " nHitsFit = " << nHitsFit() << " nHitsdEdx = " << nHitsDedx() << endm;
    }
