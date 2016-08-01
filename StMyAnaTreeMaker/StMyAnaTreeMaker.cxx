@@ -387,18 +387,15 @@ Int_t StMyAnaTreeMaker::Make() {
 	}
 	hnEvents->Fill(1);
 	int eventPass = 0;
-	if(mTrigSelect<0) eventPass = 1;
-	else if(mTrigSelect==0&&mAnaTree->event()->isMinBias()) eventPass = 1;
-	else if(mTrigSelect==1&&mAnaTree->event()->isHT11()){ eventPass = 1; mHTth = 11; mHTAdc0th = 180; mEmcPtth = 1.5;} //HT0 180
-	else if(mTrigSelect==2&&mAnaTree->event()->isHT15()){ eventPass = 1; mHTth = 15; mHTAdc0th = 250; mEmcPtth = 2.5;} //HT1 240
-	else if(mTrigSelect==3&&mAnaTree->event()->isHT18()){ eventPass = 1;mHTth = 18; mHTAdc0th = 300; mEmcPtth = 3.0;}  //HT2 300
-	else if(mTrigSelect==4&&mAnaTree->event()->isHT25()){ eventPass = 1;mHTth = 25; mHTAdc0th = 400; mEmcPtth = 4.0;}  //HT3 400
-	else if(mTrigSelect==5&&mAnaTree->event()->isEMuon()){ eventPass = 1;mHTth = 13; mHTAdc0th = 210; mEmcPtth = 2.;} //EMu 210
-	else if(mTrigSelect==6&&mAnaTree->event()->isDiMuon()) eventPass = 1; //di-muon
-	else if(mTrigSelect==7&&mAnaTree->event()->isSingleMuon()) eventPass = 1; //single-muon
+	if(   !mAnaTree->event()->isTrigger(350503) //NPE-18
+      && !mAnaTree->event()->isTrigger(350513) //NPE-18
+      && !mAnaTree->event()->isTrigger(350504) //NPE-25
+      && !mAnaTree->event()->isTrigger(350514) //NPE-25
+      && !mAnaTree->event()->isTrigger(350501) //NPE-25-noZdc
+      && !mAnaTree->event()->isTrigger(350511) //NPE-25-noZdc
+      ) return kStOK;
 
-	if(eventPass==0) return kStOK;
-	hnEvents->Fill(2);
+   hnEvents->Fill(2);
 
 	Double_t vzVpd=mAnaTree->event()->vzVpd();
 	StThreeVectorF mPrimaryVertex = mAnaTree->event()->primaryVertex();
@@ -430,8 +427,10 @@ Int_t StMyAnaTreeMaker::Make() {
 
 
 
-	int current_nePlus = 0, current_neMinus = 0;
-	int current_nmuPlus = 0, current_nmuMinus = 0;
+	current_nePlus = 0;
+   current_neMinus = 0;
+	current_nmuPlus = 0;
+   current_nmuMinus = 0;
 	int nE = mAnaTree->numberOfETracks();
 
 	memset(current_ePlusFlag,0,sizeof(current_ePlusFlag));
