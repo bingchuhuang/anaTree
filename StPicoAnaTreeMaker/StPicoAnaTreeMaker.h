@@ -48,6 +48,8 @@ enum triggerType{
 	mtd	
 };
 
+
+
 class StPicoAnaTreeMaker : public StMaker {
 	public:
 		StPicoAnaTreeMaker(Int_t mode, const char* fileName, StPicoDstMaker *picoMaker, const char *name="anaTreeMaker");
@@ -170,9 +172,12 @@ class StPicoAnaTreeMaker : public StMaker {
 		TChain*  chain();
 		TTree*   tree();
 		void    printCuts();
+    void    addTrigger(int);
 
 		enum ioMode {ioRead, ioWrite};
 	private:
+    Int_t makeTriggerWord(StPicoEvent* ); 
+    void printTriggerWords();
 
 		TH1F *mhnEvents;
 		TH1F *mhnTracks;
@@ -345,9 +350,10 @@ class StPicoAnaTreeMaker : public StMaker {
 		Float_t     mPairMassCut[2];
 
 		Float_t     mRecenterCor[8];
-      vector<Int_t> partEidx;
+    vector<Int_t> partEidx;
 		Float_t		mSizeAll;
 		Float_t		mSizeBranch[__NANATREEARRAYS__];
+    Int_t     mTriggerWord;
 
 		TRandom3       *mRandom;
 	protected:
@@ -356,6 +362,7 @@ class StPicoAnaTreeMaker : public StMaker {
 		TClonesArray*   mAnaTreeAllArrays[__NANATREEARRAYS__];   
 		TClonesArray**  mAnaTreeArrays;   //[__NANATREEARRAYS__]
 		char            mStatusArrays[__NANATREEARRAYS__];
+    std::vector<int> triggers;   // vpdmb-5-p-nobsmd 
 
 		ClassDef(StPicoAnaTreeMaker, 1)
 };
@@ -371,3 +378,4 @@ inline void StPicoAnaTreeMaker::setRunNumber(int run) { mRunNumber = run; }
 inline void StPicoAnaTreeMaker::setSaveHadron(bool val) { mSaveHadron = val; }
 inline void StPicoAnaTreeMaker::setMaxRunId(int val) { mNMaxRunId = val; }
 inline void StPicoAnaTreeMaker::setMaxCentrality(int val) { mNMaxCentrality = val; }
+inline void StPicoAnaTreeMaker::addTrigger(int val) { triggers.push_back((unsigned int)val); }

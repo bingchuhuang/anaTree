@@ -19,14 +19,14 @@ class StEventHeader : public TObject {
 		StEventHeader();
 		~StEventHeader();
 		StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCor, Bool_t doEvtPlane) ;
+		StEventHeader(const StPicoDst& picoDst) ;
+		StEventHeader(const StPicoDst& picoDst, const int trigWord) ;
 		void Clear(const Option_t*) {}
 
 		Int_t    runId() const            { return mRunId; }
 		Int_t    eventId() const          { return mEventId; }
 		Float_t  bField() const           { return mBField; }
 		StThreeVectorF primaryVertex() const { return StThreeVectorF(mVx,mVy,mVz); }
-		Int_t    triggerWord() const      { return mTriggerWord; }
-		Int_t    triggerWordMtd() const   { return mTriggerWordMtd; }
 		Int_t    refMultPos() const       { return (Int_t)mRefMult-mRefMultNeg; }
 		Int_t    refMultNeg() const       { return (Int_t)mRefMultNeg; }
 		Int_t    refMult() const          { return (Int_t)(mRefMult); }
@@ -90,24 +90,14 @@ class StEventHeader : public TObject {
 		int      year() const;
 		int      day() const;
 		float    energy() const;
-		bool     isMinBias() const;
-		bool     isMBSlow() const;
-		bool     isCentral() const;
-		bool     isHT() const;    
-		bool     isHT11() const; 
-		bool     isHT15() const; 
-		bool     isHT18() const;
-		bool     isHT25() const;
-		bool     isMtdTrig() const;
-		bool     isDiMuon() const;
-		bool     isDiMuonHFT() const;
-		bool     isSingleMuon() const;
-		bool     isEMuon() const;
-
 		// set functions for trigger thresholds
 		void     setHT_Th(const Int_t i, const Int_t th) { mHT_Th[i] = (UChar_t)th; }
+
+    std::vector<unsigned int> triggerIds() const;
+    bool                      isTrigger(unsigned int) const;
 		
 	protected: //these are written out
+    void     prepareEventInfo(const StPicoDst& picoDst, const Float_t *recenterCor, Bool_t doEvtPlane);
 
 		Int_t          mRunId;           // run number
 		Int_t          mEventId;         // event number
@@ -116,8 +106,9 @@ class StEventHeader : public TObject {
 		Float_t        mVy;              // primary vertex y
 		Float_t        mVz;              // primary vertex z
 		Float_t        mVzVpd;           // vpd vz
-		UInt_t         mTriggerWord;     // self-defined trigger word - see code for details
-		UInt_t         mTriggerWordMtd;  // Added in Run14, st_mtd trigger
+
+    std::vector<unsigned int> mTriggerIds;
+
 		UShort_t       mRefMultNeg;      // TPC refMult neg
 		UShort_t       mRefMult;// TPC refMult neg+pos 
 		UShort_t       mGRefMult;// 
@@ -168,4 +159,6 @@ class StEventHeader : public TObject {
 		ClassDef(StEventHeader,1)
 };
 
+inline std::vector<unsigned int> StEventHeader::triggerIds() const { return mTriggerIds;}
 #endif
+		
