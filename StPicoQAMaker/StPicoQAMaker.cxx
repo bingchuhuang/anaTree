@@ -1,7 +1,6 @@
 #include "StPicoQAMaker.h"
 #include "StRoot/StPicoDstMaker/StPicoDst.h"
 #include "StRoot/StPicoDstMaker/StPicoTrack.h"
-#include "StRoot/StPicoDstMaker/StPicoV0.h"
 #include "StRoot/StPicoDstMaker/StPicoDstMaker.h"
 #include "StRoot/StPicoDstMaker/StPicoEvent.h"
 #include "StRoot/StPicoDstMaker/StPicoMtdHit.h"
@@ -414,7 +413,6 @@ Int_t StPicoQAMaker::Make() {
 
    //int triggerWord = event->triggerWord();
    //	if(triggerWord>>19 & 0x1
-   Int_t triggerWORD=mPicoDst->event()->triggerWord();
    //for(Int_t i=0; i<25; i++){
    //   if( triggerWORD>>i & 0x1 ) htriggerindex->Fill(i);
 
@@ -939,28 +937,6 @@ Int_t StPicoQAMaker::Make() {
    return kStOK;
 }//end of main fucntion
 
-Bool_t StPicoQAMaker::isBHT1(StPicoEvent *event)
-{
-   int triggerWord = event->triggerWord();
-   if(triggerWord>>19 & 0x1 || triggerWord>>20 & 0x1) return true;
-   else return false;
-}
-
-//-----------------------------------------                                              
-Bool_t StPicoQAMaker::isBHT2(StPicoEvent *event)
-{
-   int triggerWord = event->triggerWord();
-   if(triggerWord>>21 & 0x1 || triggerWord>>22 & 0x1) return true;
-   else return false;
-}
-
-//---------------------------------------------------  
-Bool_t StPicoQAMaker::isBHT3(StPicoEvent *event)
-{
-   int triggerWord = event->triggerWord();
-   if(triggerWord>>23 & 0x1 || triggerWord>>24 & 0x1) return true;
-   else return false;
-}
 
 
 //------------------------------------------------------------- 
