@@ -12,7 +12,7 @@ StPicoBTOWHit::StPicoBTOWHit(): mId(0), mAdc(0), mE(0)
 }
 
 //----------------------------------------------------------------------------------
-StPicoBTOWHit::StPicoBTOWHit(int id, int adc, float e): StPicoBTOWHit()
+StPicoBTOWHit::StPicoBTOWHit(int id, int adc, float e)
 {
   if(id  <0 || adc <0) return;
 
