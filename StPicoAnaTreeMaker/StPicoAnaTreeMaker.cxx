@@ -251,7 +251,6 @@ Int_t StPicoAnaTreeMaker::Init() {
     openRead();     // if read, don't care about phi weight files
   } else if (mIoMode == ioWrite) {
     openWrite();
-  }
 
   ifstream indata;
   indata.open(mRunList.Data());
@@ -274,6 +273,7 @@ Int_t StPicoAnaTreeMaker::Init() {
 
   //for(map<Int_t,Int_t>::iterator iter=mTotalRunId.begin();iter!=mTotalRunId.end();iter++)
   //	cout<<iter->second<<" \t"<<iter->first<<endl;
+  }
 
   return kStOK;
 }
@@ -884,7 +884,7 @@ void StPicoAnaTreeMaker::fillPairs() {
     Bool_t isPhoton = false;
     for(int j=0;j<nElec;j++){ // primary
       StElectronTrack *eTrk2 = (StElectronTrack*)mAnaTree->eTrack(j);
-      if(passPhoEEPair(eTrk1,eTrk2,index,j)) isPhoton = true;
+      if(passPhoEEPair(eTrk1,eTrk2,index,j,idx)) isPhoton = true;
     }
 
     if(isPhoton){ 
@@ -1406,7 +1406,7 @@ Bool_t StPicoAnaTreeMaker::passEEPair(StElectronTrack *t1, StElectronTrack *t2, 
   return true;
 }
 //---------------------------------------------------------------
-Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, Int_t index1, Int_t index2)
+Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, Int_t index1, Int_t index2, Int_t idx1InPico)
 {
   /* pho ee pair cut */
   StThreeVectorF mom(0,0,0);
@@ -1419,7 +1419,7 @@ Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, I
   if(q1==1&&q2==1) type = 2;
   if(q1==-1&&q2==-1) type = 3;
 
-  Int_t id1 = t1->id();
+  Int_t id1 = idx1InPico;
   Int_t id2 = t2->id();
 
   if(id1==id2) return false;
