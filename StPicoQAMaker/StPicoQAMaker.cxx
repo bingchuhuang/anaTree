@@ -61,7 +61,7 @@ Int_t StPicoQAMaker::Init() {
       indata.open("StRoot/StPicoQAMaker/mTotalRunList.dat");
       mTotalRunId.clear();
       if(indata.is_open()){
-         cout<<"read in total run number list and recode run number ...";
+         cout<<"read in total run number list and record run number ...";
          Int_t oldId;
          Int_t newId=0;
          while(indata>>oldId){
@@ -413,6 +413,7 @@ Int_t StPicoQAMaker::Make() {
 
    //int triggerWord = event->triggerWord();
    //	if(triggerWord>>19 & 0x1
+   //Int_t triggerWORD=mPicoDst->event()->triggerWord();
    //for(Int_t i=0; i<25; i++){
    //   if( triggerWORD>>i & 0x1 ) htriggerindex->Fill(i);
 
@@ -937,7 +938,31 @@ Int_t StPicoQAMaker::Make() {
    return kStOK;
 }//end of main fucntion
 
+/*
+Bool_t StPicoQAMaker::isBHT1(StPicoEvent *event)
+{
+   int triggerWord = event->triggerWord();
+   if(triggerWord>>19 & 0x1 || triggerWord>>20 & 0x1) return true;
+   else return false;
+}
 
+//-----------------------------------------                                              
+Bool_t StPicoQAMaker::isBHT2(StPicoEvent *event)
+{
+   int triggerWord = event->triggerWord();
+   if(triggerWord>>21 & 0x1 || triggerWord>>22 & 0x1) return true;
+   else return false;
+}
+
+//---------------------------------------------------  
+Bool_t StPicoQAMaker::isBHT3(StPicoEvent *event)
+{
+   int triggerWord = event->triggerWord();
+   if(triggerWord>>23 & 0x1 || triggerWord>>24 & 0x1) return true;
+   else return false;
+}
+
+*/
 
 //------------------------------------------------------------- 
 

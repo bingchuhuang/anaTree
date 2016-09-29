@@ -20,12 +20,13 @@ class StEmcTrigger : public TObject {
   Int_t   adc0() const            { return (Int_t)mAdc0; }
   
   void    setEId(int eid)        { mEId = eid; }
+  void    setAdc0(int adc0)        { mAdc0 = adc0; }
 
  protected:
 
   UChar_t mFlag;   // 0x1: ht0, 0x2: ht1, 0x4: ht2; 0x8: ht3
   UShort_t mId;    // soft id.  bjp: 1-18, ht: 1-4800
-  UShort_t mAdc;   // adc
+  UShort_t mAdc;   // DSM adc
   UShort_t mEId;   // id to matched electron
   UShort_t mAdc0;   // adc0, matched adc0
   

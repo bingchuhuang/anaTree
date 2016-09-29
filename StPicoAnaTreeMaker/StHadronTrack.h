@@ -36,7 +36,7 @@ class StHadronTrack : public TObject {
   //Int_t   nHitsMax() const       { return (Int_t)mNHitsMax; }
   Float_t nSigmaPion() const     { return (Float_t)mNSigmaPion/10.; }
   Float_t nSigmaKaon() const     { return (Float_t)mNSigmaKaon/10.; }
-  Float_t dca() const           { return (Float_t)abs(mDca)/40.; }
+  Float_t dca() const           { return (Float_t)abs(mDca)/10000.; }
   //Float_t dcaXY() const            { return (Float_t)mDcaXY/10000.; }
   //Float_t dcaZ() const            { return (Float_t)mDcaZ/10000.; }
   Float_t beta() const           { return (Float_t)mBeta/20000.; }
@@ -56,8 +56,8 @@ class StHadronTrack : public TObject {
   // pidTraits
   UShort_t mBeta;  // *20000 w/ |localY|<2 cm
 
-  Char_t  mDca;              // dca * 40 * (isHFT?-1:1)
-  Char_t   mNHitsFit;         // q*nHitsFit
+  Short_t  mDca;              // dca * 10000 * (isHFT?-1:1)
+  Char_t  mNHitsFit;         // q*nHitsFit
   //Char_t   mNHitsMax;         // nHitsMax - TPC
   UChar_t  mNHitsDedx;        // nHitsDedx
   Char_t  mNSigmaPion;       // nsigmaPi * 10

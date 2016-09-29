@@ -18,7 +18,7 @@ ClassImp(StHadronTrack)
 //----------------------------------------------------------------------------------
 StHadronTrack::StHadronTrack() : mId(-1), 
    mGPt(0),mGEta(32768),mGPhi(32768),
-   mBeta(0), mDca(128), 
+   mBeta(0), mDca(32768), 
    mNHitsFit(0), mNHitsDedx(0), mNSigmaPion(128), mNSigmaKaon(128)
 {
 
@@ -44,9 +44,10 @@ StHadronTrack::StHadronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
       StPhysicalHelixD helix = t->helix();
       double thePath = helix.pathLength(vertexPos);
       StThreeVectorF dcaPos = helix.at(thePath);
-      mDca = fabs((dcaPos-vertexPos).mag()*40.)>128? 128: (Char_t)((dcaPos-vertexPos).mag()*40.);
+      double dca = (dcaPos-vertexPos).mag();
       bool isHft = t->isHFTTrack();
-      if(isHft) mDca *= -1;
+      if(isHft) dca *= -1;
+      mDca = fabs(dca*10000.)>32768? 32768: (Short_t)(dca*10000.);
       
       StThreeVectorF gMom = t->gMom(vertexPos,picoDst->event()->bField());
       mGPt = gMom.perp()*1000.>65535?65535:(UShort_t)(gMom.perp()*1000.);

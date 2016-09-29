@@ -17,7 +17,8 @@
 ClassImp(StPartElectronTrack)
 
    //----------------------------------------------------------------------------------
-StPartElectronTrack::StPartElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
+StPartElectronTrack::StPartElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.),mDca(32768),
+   mDcaXY(32768),mDcaZ(32768),
    mNHitsFit(0), mNHitsDedx(0), 
    mNSigmaElectron(32768),
    mBeta(0), mLocalY(32768),
@@ -58,9 +59,11 @@ StPartElectronTrack::StPartElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0
 
    double thePath = helix.pathLength(vertexPos);
    StThreeVectorF dcaPos = helix.at(thePath);
-   mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
+
+   double dca = (dcaPos-vertexPos).mag();
    bool isHft = t->isHFTTrack();
-   if(isHft) mDca *= -1;
+   if(isHft) dca *= -1;
+   mDca = fabs(dca*10000.)>32768? 32768: (Short_t)(dca*10000.);
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){

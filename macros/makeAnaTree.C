@@ -8,7 +8,7 @@ class StMuDstMaker;
 
 
 StChain *chain;
-void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
+void makeAnaTree(const Int_t runnumber=15094070,
 		//    const Char_t *inputFile="/star/data54/reco/AuAu200_production_2011/FullField/P11id/2011/169/12169026/st_physics_adc_12169026_raw_4510001.MuDst.root",
 		//    const Char_t *inputFile="/star/data78/reco/pp200_production_2012/ReversedFullField/P12id/2012/040/13040016/st_physics_13040016_raw_1010001.MuDst.root",
 		//    const Char_t *inputFile="/star/data43/reco/pp500_production_2013/ReversedFullField/P14ia/2013/115/14115072/st_physics_14115072_raw_3690004.MuDst.root",
@@ -18,8 +18,9 @@ void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
 		//    const Char_t *inputFile="/star/data79/reco/AuAu_200_production_low_2014/ReversedFullField/P15ic/2014/145/15145024/st_physics_15145024_raw_1000048.MuDst.root",
 		//    const Char_t *inputFile="root://xrdstar.rcf.bnl.gov:1095//home/starlib/home/starreco/reco/AuAu_200_production_low_2014/ReversedFullField/P15ic/2014/166/15166010/st_physics_15166010_raw_4500060.MuDst.root",
 		const Char_t *inputFile="root://xrdstar.rcf.bnl.gov:1095//home/starlib/home/starreco/reco/AuAu_200_production_mid_2014/ReversedFullField/P15ic/2014/094/15094070/st_physics_15094070_raw_0000007.MuDst.root",
-		const bool creatingPhiWgt = kFALSE, const int prodMod = 0, const int emcMode=1
+		const bool creatingPhiWgt = kFALSE, const int prodMod = 0, const int emcMode=1, const int prodType = 0
 		){
+	Int_t nEvents = 10000000;
 	//Int_t nEvents = 100;
 	//Int_t nEvents = 1000;	
 	//Load all the System libraries
@@ -80,6 +81,7 @@ void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
 	gSystem->Load("StPicoAnaTreeMaker");
 	gSystem->Load("StPicoQAMaker");
 	gSystem->Load("StRefMultCorr");
+   gSystem->Load("StPicoElecPurityMaker");
 
 	chain = new StChain();
 
@@ -92,7 +94,7 @@ void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
 	MuDstMaker->SetStatus("CovGlobTrack",1);
 	MuDstMaker->SetStatus("BTof*",1);
 	MuDstMaker->SetStatus("Emc*",1);
-	//MuDstMaker->SetStatus("MTD*",1);
+	MuDstMaker->SetStatus("MTD*",1);
 
 
 	//StMagFMaker *magfMk = new StMagFMaker; 
@@ -158,6 +160,10 @@ void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
 	outQAFile.ReplaceAll("MuDst.root","qa.root");
    StPicoQAMaker *qaMaker = new StPicoQAMaker("ana",picoMaker,outQAFile);
    
+   TString outPurityFile=mInputFileName;
+   outPurityFile.ReplaceAll("MuDst.root","purity.root");
+   StPicoElecPurityMaker *ePurMaker = new StPicoElecPurityMaker("purity",picoMaker,outPurityFile);
+	
    outputFile=mInputFileName;
 	outputFile.ReplaceAll("MuDst.root","anaTree.root");
 	
@@ -166,27 +172,27 @@ void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
 	if(prodMod==0){
 		treeMaker->setVzCut(-8,8);
 		treeMaker->setVzDiffCut(-4,4);
-      treeMaker->setInputRunList("./runnumbers_mb");
+      treeMaker->setInputRunList("./runNumberList_run14AuAu200mb");
       treeMaker->setInputRecenterFile("./recenter_correction.root");
       treeMaker->setPhoEPairMassCut(0.2);
-      cout<<" add mb triggers !!! "<<endl;
 	}	
-	if(prodMod==1){ //ht
-		treeMaker->setVzCut(-200,200);
+	if(prodMod==1){
+		treeMaker->setVzCut(-100,100);
       //treeMaker->setDoEvtPlane(false); //default is true
-      treeMaker->setInputRunList("./runnumbers_ht");
-      treeMaker->setInputRecenterFile("./recenter_correction.root");
-      treeMaker->setMaxRunId(1272);
+      if(prodType==0){ // prod low and mid
+         treeMaker->setInputRunList("./runNumberList_run14AuAu200mb");
+         treeMaker->setInputRecenterFile("./recenter_correction.root");
+         treeMaker->setMaxRunId(1700);
+      }
+      if(prodType==1){ // prod high
+         treeMaker->setInputRunList("./runNumberList_run14AuAu200ht_high");
+         treeMaker->setInputRecenterFile("./recenter_correction_ht_high.root");
+         treeMaker->setMaxRunId(1000); //need to check
+      }
       treeMaker->setPhoEPairMassCut(0.24);
       treeMaker->setSaveHadron(true);
-    
-      treeMaker->addTrigger(350503); //NPE18
-      treeMaker->addTrigger(350513); //NPE18
-      treeMaker->addTrigger(350504); //NPE25
-      treeMaker->addTrigger(350511); //NPE25-nozdc
-      treeMaker->addTrigger(350514); //NPE25
 	}
-	if(prodMod==2){ //>=run13
+	if(prodMod==2){
 		treeMaker->setVzCut(-100,100);
       //treeMaker->setDoEvtPlane(false); //default is true
       //treeMaker->setInputRunList("./runNumberList_run14AuAu200");
@@ -195,6 +201,7 @@ void makeAnaTree(Int_t nEvents = 10000000, const Int_t runnumber=15094070,
    //treeMaker->setDoCalcRecenter(false);  //default is false
    treeMaker->setPartEnSigECut(-3.5,3);
    treeMaker->setPhoEPairDcaCut(1);
+
 
 	chain->Init();
 	cout<<"chain->Init();"<<endl;

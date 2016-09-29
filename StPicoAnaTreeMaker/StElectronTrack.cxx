@@ -18,6 +18,7 @@ ClassImp(StElectronTrack)
 
 //----------------------------------------------------------------------------------
 StElectronTrack::StElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.),
+   mDca(32768), mDcaXY(32768), mDcaZ(32768), mDcaZLine(32768),
    mNHitsFit(0), mNHitsDedx(0), 
    mNSigmaElectron(32768), mOrigin(0,0,0),
    mBeta(0), mLocalY(32768),
@@ -63,13 +64,19 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
    mDcaZ = dcaZ>32768?32768:(Short_t)dcaZ;
    mDcaXY = dcaXY>32768?32768:(Short_t)dcaXY;
 
+
    double thePath = helix.pathLength(vertexPos);
    StThreeVectorF dcaPos = helix.at(thePath);
    mGMom = helix.momentumAt(thePath,picoDst->event()->bField()*kilogauss);
    mOrigin = dcaPos;
-   mDca = fabs((dcaPos-vertexPos).mag()*10000.)>32768? 32768: (Short_t)((dcaPos-vertexPos).mag()*10000.);
+   double dca = (dcaPos-vertexPos).mag();
    bool isHft = t->isHFTTrack();
-   if(isHft) mDca *= -1;
+   if(isHft) dca *= -1;
+   mDca = fabs(dca*10000.)>32768? 32768: (Short_t)(dca*10000.);
+   
+   StThreeVectorF posDiff = dcaPos - vertexPos;
+   if(sin(mGMom.theta())==0) mDcaZLine = 32768;
+   else mDcaZLine = (-posDiff.x()*cos(mGMom.phi())-posDiff.y()*sin(mGMom.phi()))*cos(mGMom.theta())/sin(mGMom.theta())+posDiff.z();
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){
