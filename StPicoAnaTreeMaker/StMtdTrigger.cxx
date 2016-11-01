@@ -6,7 +6,7 @@
 #include "StMuDSTMaker/COMMON/StMuDst.h" 
 #include "StMuDSTMaker/COMMON/StMuEvent.h"
 #include "StMuDSTMaker/COMMON/StMuMtdHeader.h"
-#include "StPicoDstMaker/StPicoMtdTrigger.h"
+#include "StPicoEvent/StPicoMtdTrigger.h"
 #include "StMtdTrigger.h"
 
 ClassImp(StMtdTrigger)

@@ -1,13 +1,12 @@
 #include "StRoot/StPicoDstMaker/StPicoDst.h"
-#include "StRoot/StPicoDstMaker/StPicoTrack.h"
+#include "StRoot/StPicoEvent/StPicoTrack.h"
 #include "StRoot/StPicoDstMaker/StPicoDstMaker.h"
-#include "StRoot/StPicoDstMaker/StPicoEvent.h"
-#include "StRoot/StPicoDstMaker/StPicoMtdHit.h"
-#include "StRoot/StPicoDstMaker/StPicoConstants.h"
-#include "StRoot/StPicoDstMaker/StPicoMtdPidTraits.h"
-#include "StRoot/StPicoDstMaker/StPicoBTofPidTraits.h"
-#include "StRoot/StPicoDstMaker/StPicoEmcPidTraits.h"
-#include "StRoot/StPicoDstMaker/StPicoEmcTrigger.h"
+#include "StRoot/StPicoEvent/StPicoEvent.h"
+#include "StRoot/StPicoEvent/StPicoMtdHit.h"
+#include "StRoot/StPicoEvent/StPicoMtdPidTraits.h"
+#include "StRoot/StPicoEvent/StPicoBTofPidTraits.h"
+#include "StRoot/StPicoEvent/StPicoBEmcPidTraits.h"
+#include "StRoot/StPicoEvent/StPicoEmcTrigger.h"
 #include "StDcaGeometry.h"
 #include "StRoot/StRefMultCorr/StRefMultCorr.h"
 #include "StRoot/StRefMultCorr/CentralityMaker.h"
@@ -48,9 +47,6 @@
 #define MAXFILESIZE 1900000000
 #define ElectronMass 0.000510999
 #define MuonMass 0.1056583715
-
-map<Int_t, Int_t> mTotalRunId;
-Int_t runIndex;
 
 ClassImp(StPicoAnaTreeMaker)
 
@@ -101,7 +97,7 @@ ClassImp(StPicoAnaTreeMaker)
   mEInvBetaCut[0] = 0.97; mEInvBetaCut[1] = 1.03;
   //mELocalYCut[0] = -2; mELocalYCut[1] = 2;
   //mELocalZCut[0] = -3; mELocalZCut[1] = 3;
-  mEnSigECut[0] = -1.5; mEnSigECut[1] = 3;
+  mEnSigECut[0] = -2.; mEnSigECut[1] = 3;
 
   mPartEnSigECut[0] = -3.5; mPartEnSigECut[1] = 3.;
   mPhoEPairDcaCut = 1;
@@ -662,7 +658,7 @@ Int_t StPicoAnaTreeMaker::MakeWrite() {
       fillTracks();
       fillPairs();
       fillEmcTrigger();
-      if(mTriggerSelection==mtd) fillMtdTrigger();
+      if(mTriggerSelection==mtd||mTriggerSelection==hlt) fillMtdTrigger();
       //int counts = mAnaTreeArrays[anaTreeETrack]->GetEntries() + mAnaTreeArrays[anaTreeMuTrack]->GetEntries() + mAnaTreeArrays[anaTreePartETrack]->GetEntries();
       mTTree->Fill();
     }
@@ -713,7 +709,11 @@ void StPicoAnaTreeMaker::fillRecenterCor() {
   if(runIndex<0) return;
 
   StRefMultCorr* grefmultCorrUtil = CentralityMaker::instance()->getgRefMultCorr() ;
-  grefmultCorrUtil->init(runId);
+  if(runId>17000000){
+   grefmultCorrUtil->init(15167013); //temporary use run14 to correct run16 events. Need to update.
+  }else{
+   grefmultCorrUtil->init(runId);
+  }
 
   UShort_t gref  = (UShort_t)(ev->grefMult());
   double vz = ev->primaryVertex().z();
@@ -738,7 +738,7 @@ void StPicoAnaTreeMaker::fillRecenterCor() {
     StPicoTrack *t = (StPicoTrack*)mPicoDst->track(n);
     Int_t q = t->charge();
 
-    StPhysicalHelixD helix = t->helix();
+    StPhysicalHelixD helix = t->helix(mPicoDst->event()->bField());
     Double_t thePath = helix.pathLength(vertexPos);
     StThreeVectorF dcaPos = helix.at(thePath);
     Float_t dca = (dcaPos-vertexPos).mag();
@@ -798,7 +798,11 @@ void StPicoAnaTreeMaker::fillEventHeader() {
   }
 
   StRefMultCorr* grefmultCorrUtil = CentralityMaker::instance()->getgRefMultCorr() ;
-  grefmultCorrUtil->init(runId);
+  if(runId>17000000){
+   grefmultCorrUtil->init(15167013); //temporary use run14 to correct run16 events. Need to update.
+  }else{
+   grefmultCorrUtil->init(runId);
+  }
 
   UShort_t gref  = (UShort_t)(ev->grefMult());
   double vz = ev->primaryVertex().z();
@@ -915,7 +919,8 @@ void StPicoAnaTreeMaker::fillPairs() {
 
 //-----------------------------------------------------------------------
 void StPicoAnaTreeMaker::fillEmcTrigger() {
-  for(UInt_t i=0;i<mPicoDst->numberOfEmcTriggers();i++){
+  
+  for(Int_t i=0;i<mPicoDst->numberOfEmcTriggers();i++){
     StPicoEmcTrigger *emc = (StPicoEmcTrigger*)mPicoDst->emcTrigger(i);
     int flag = emc->flag();
     int trgId = emc->id();
@@ -927,9 +932,11 @@ void StPicoAnaTreeMaker::fillEmcTrigger() {
     new((*(mAnaTreeArrays[anaTreeEmcTrigger]))[counter]) StEmcTrigger(flag,trgId,adc,eId,adc0);
   }
 
-  for(UInt_t i = 0;i<mAnaTreeArrays[anaTreeEmcTrigger]->GetEntries();i++){
+  for(Int_t i = 0;i<mAnaTreeArrays[anaTreeEmcTrigger]->GetEntries();i++){
     StEmcTrigger *emcTrg = (StEmcTrigger*) mAnaTree->emcTrigger(i);
     int trgId = emcTrg->id();
+    int flag = emcTrg->flag();
+    if(!(flag & 0xf)) continue; //bjp triggers
     int nElec = mAnaTree->numberOfETracks();
     for(int j=0;j<nElec;j++){
       StElectronTrack *eTrk = (StElectronTrack*)mAnaTree->eTrack(j);
@@ -978,7 +985,7 @@ Bool_t StPicoAnaTreeMaker::isGoodTrack(StPicoTrack* t)
   p = gMom.mag();
   pt = gMom.perp();
   eta = gMom.pseudoRapidity();
-  StPhysicalHelixD helix = t->helix();
+  StPhysicalHelixD helix = t->helix(mPicoDst->event()->bField());
   StThreeVectorF vertexPos = mPicoDst->event()->primaryVertex();
   Double_t thePath = helix.pathLength(vertexPos);
   StThreeVectorF dcaPos = helix.at(thePath);
@@ -987,7 +994,7 @@ Bool_t StPicoAnaTreeMaker::isGoodTrack(StPicoTrack* t)
   nHitsMax = t->nHitsMax();
   nHitsDedx = t->nHitsDedx();
   ratio = 1.*t->nHitsFit()/nHitsMax;
-  nHitsMapHFT = t->nHitsMapHFT();
+  nHitsMapHFT = t->hftHitsMap();
   bool isHFTTrack = t->isHFTTrack();
 
   StThreeVectorF pMom = t->pMom();
@@ -1075,7 +1082,7 @@ Bool_t StPicoAnaTreeMaker::isTofElectron(StPicoTrack* t)
       Float_t tof = tofPid->btof();
       StThreeVectorF btofHitPos = tofPid->btofHitPos();
       StThreeVectorF vertexPos = mPicoDst->event()->primaryVertex();
-      float L = tofPathLength(&vertexPos, &btofHitPos, t->helix().curvature()); 
+      float L = tofPathLength(&vertexPos, &btofHitPos, t->helix(mPicoDst->event()->bField()).curvature()); 
       if(tof>0) beta = L/(tof*(c_light/1.0e9));
     }
     if(beta>0) invBeta = 1./beta;
@@ -1114,7 +1121,7 @@ Bool_t StPicoAnaTreeMaker::isTofElectron(StPicoTrack* t)
   mhnTracks->Fill(12);
 
   StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(),mPicoDst->event()->bField());
-  StPhysicalHelixD helix = t->helix();
+  StPhysicalHelixD helix = t->helix(mPicoDst->event()->bField());
   StThreeVectorF vertexPos = mPicoDst->event()->primaryVertex();
   Double_t thePath = helix.pathLength(vertexPos);
   StThreeVectorF dcaPos = helix.at(thePath);
@@ -1129,7 +1136,7 @@ Bool_t StPicoAnaTreeMaker::isTofElectron(StPicoTrack* t)
 Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
 {
   /* EMC+TPC electron PID*/
-  int index2EmcPid = t->emcPidTraitsIndex();
+  int index2EmcPid = t->bemcPidTraitsIndex();
   Float_t e = -999., zDist = -999., phiDist = -999., nEta = 0, nPhi = 0;
   //StThreeVectorF gMom = t->gMom(mPicoDst->event()->primaryVertex(), mPicoDst->event()->bField());
   Float_t p = t->gPtot();
@@ -1137,12 +1144,12 @@ Bool_t StPicoAnaTreeMaker::isEmcElectron(StPicoTrack* t)
   //Float_t eta = gMom.pseudoRapidity();
   Float_t nSigE = t->nSigmaElectron();
   if (index2EmcPid>=0){
-    StPicoEmcPidTraits *emcPid = mPicoDst->emcPidTraits(index2EmcPid);
-    e = emcPid->e0();
-    zDist = emcPid->zDist();
-    phiDist = emcPid->phiDist();
-    nEta = emcPid->nEta();
-    nPhi = emcPid->nPhi();
+    StPicoBEmcPidTraits *emcPid = mPicoDst->bemcPidTraits(index2EmcPid);
+    e = emcPid->bemcE0();
+    zDist = emcPid->bemcZDist();
+    phiDist = emcPid->bemcPhiDist();
+    nEta = emcPid->bemcSmdNEta();
+    nPhi = emcPid->bemcSmdNPhi();
   }else{
     return false;
   }
@@ -1410,7 +1417,7 @@ Bool_t StPicoAnaTreeMaker::passPhoEEPair(StPicoTrack *t1, StElectronTrack *t2, I
   if(id1==id2) return false;
 
   float bField = mPicoDst->event()->bField();
-  StPhysicalHelixD helix1 = t1->helix();
+  StPhysicalHelixD helix1 = t1->helix(bField);
   StPhysicalHelixD helix2 = t2->helix(bField);
   pairD s = helix1.pathLengths(helix2);
   StThreeVectorF pos1 = helix1.at(s.first);

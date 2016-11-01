@@ -48,6 +48,8 @@ class StMuonTrack : public TObject {
   Float_t localY() const          {return (Float_t)mLocalY/1000.;}
   //Float_t localZ() const          {return (Float_t)mLocalZ/1000.;}
   Float_t nSigmaPion() const     { return (Float_t)mNSigmaPion/1000.; }
+  Float_t dNdx() const { return mDnDx;}
+  Float_t dNdxError() const { return mDnDxError;}
   Float_t dca() const           { return (Float_t)abs(mDca)/10000.; }
   Float_t dcaXY() const           { return (Float_t)mDcaXY/10000.; }
   Float_t dcaZ() const           { return (Float_t)mDcaZ/10000.; }
@@ -85,6 +87,8 @@ class StMuonTrack : public TObject {
   //UInt_t   mMap0;             // TopologyMap data0 HFT + TPC
   //UInt_t   mMap1;             // TopologyMap data1 TPC + Others
   StThreeVectorF mOrigin;
+  Float_t  mDnDx;
+  Float_t  mDnDxError;
  
   // pidTraits
   //Char_t   mTofMatchFlag;

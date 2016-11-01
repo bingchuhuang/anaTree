@@ -6,7 +6,7 @@
 class StPicoTrack;
 class StPicoDst;
 class StPicoBTofPidTraits;
-class StPicoEmcPidTraits;
+class StPicoBEmcPidTraits;
 class StDcaGeometry;
 
 #include "TObject.h"

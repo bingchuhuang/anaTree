@@ -1,11 +1,11 @@
 #include "StHadronTrack.h"
 #include "StMessMgr.h"
 #include "TMath.h"
-#include "StPicoDstMaker/StPicoTrack.h"
-#include "StPicoDstMaker/StPicoEvent.h"
 #include "StPicoDstMaker/StPicoDst.h"
-#include "StPicoDstMaker/StPicoBTofPidTraits.h"
-#include "StPicoDstMaker/StPicoEmcPidTraits.h"
+#include "StPicoEvent/StPicoTrack.h"
+#include "StPicoEvent/StPicoEvent.h"
+#include "StPicoEvent/StPicoBTofPidTraits.h"
+#include "StPicoEvent/StPicoBEmcPidTraits.h"
 #include "StMuDSTMaker/COMMON/StMuDst.h"
 #include "StMuDSTMaker/COMMON/StMuTrack.h"
 #include "StMuDSTMaker/COMMON/StMuEvent.h"
@@ -41,7 +41,7 @@ StHadronTrack::StHadronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
       //mNSigmaElectron = (fabs(t->nSigmaElectron() * 100.) > 32768) ? 32768 : (Short_t)(TMath::Nint(t->nSigmaElectron() * 100.));
 
 	   StThreeVectorF vertexPos = picoDst->event()->primaryVertex();
-      StPhysicalHelixD helix = t->helix();
+      StPhysicalHelixD helix = t->helix(picoDst->event()->bField());
       double thePath = helix.pathLength(vertexPos);
       StThreeVectorF dcaPos = helix.at(thePath);
       double dca = (dcaPos-vertexPos).mag();

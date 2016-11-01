@@ -1,6 +1,6 @@
 #ifndef StPicoAnaTreeMaker_h
 #define StPicoAnaTreeMaker_h
-#include "StRoot/StPicoDstMaker/StPicoTrack.h"
+#include "StRoot/StPicoEvent/StPicoTrack.h"
 #include "StMaker.h"
 #include <vector>
 #include <utility>
@@ -45,7 +45,8 @@ using namespace std;
 enum triggerType{
 	minbias=0,
 	ht,
-	mtd	
+	mtd,
+   hlt
 };
 
 
@@ -288,7 +289,7 @@ class StPicoAnaTreeMaker : public StMaker {
 		Bool_t    mSaveHadron;
 		Int_t	    mNMaxRunId;
 		Int_t	    mNMaxCentrality;
-		Int_t 	 mTriggerSelection; 	//! 0 = minbias; 1 = ht; 2 = st_mtd;
+		Int_t 	 mTriggerSelection; 	//! 0 = minbias; 1 = ht; 2 = st_mtd; 3 = st_hlt;
 
 		Bool_t	 mCalcRecenter; //! calculate Recenter 
 		Bool_t	 mDoEvtPlane; //! do Eventplane 
@@ -354,6 +355,8 @@ class StPicoAnaTreeMaker : public StMaker {
 		Float_t		mSizeAll;
 		Float_t		mSizeBranch[__NANATREEARRAYS__];
     Int_t     mTriggerWord;
+      map<Int_t, Int_t> mTotalRunId;
+      Int_t runIndex;
 
 		TRandom3       *mRandom;
 	protected:
@@ -362,7 +365,7 @@ class StPicoAnaTreeMaker : public StMaker {
 		TClonesArray*   mAnaTreeAllArrays[__NANATREEARRAYS__];   
 		TClonesArray**  mAnaTreeArrays;   //[__NANATREEARRAYS__]
 		char            mStatusArrays[__NANATREEARRAYS__];
-    std::vector<int> triggers;   // vpdmb-5-p-nobsmd 
+      std::vector<int> triggers;   // vpdmb-5-p-nobsmd 
 
 		ClassDef(StPicoAnaTreeMaker, 1)
 };

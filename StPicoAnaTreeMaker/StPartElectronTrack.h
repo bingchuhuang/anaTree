@@ -6,7 +6,7 @@
 class StPicoTrack;
 class StPicoDst;
 class StPicoBTofPidTraits;
-class StPicoEmcPidTraits;
+class StPicoBEmcPidTraits;
 class StDcaGeometry;
 
 #include "TObject.h"
@@ -37,6 +37,8 @@ class StPartElectronTrack : public TObject {
   Float_t localY() const          {return (Float_t)mLocalY/1000.;}
   //Float_t localZ() const          {return (Float_t)mLocalZ/1000.;}
   Float_t nSigmaElectron() const { return (Float_t)mNSigmaElectron/1000.; }
+  Float_t dNdx() const { return mDnDx;}
+  Float_t dNdxError() const { return mDnDxError;}
   Float_t dca() const           { return (Float_t)abs(mDca)/10000.; }
   Float_t dcaXY() const           { return (Float_t)mDcaXY/10000.; }
   Float_t dcaZ() const           { return (Float_t)mDcaZ/10000.; }
@@ -67,6 +69,8 @@ class StPartElectronTrack : public TObject {
   Char_t   mNHitsFit;         // q*nHitsFit
   UChar_t  mNHitsDedx;        // nHitsDedx
   Short_t  mNSigmaElectron;   // nsigmaE * 1000
+  Float_t  mDnDx;
+  Float_t  mDnDxError;
   
   // pidTraits
   Short_t  mBeta;   // *20000

@@ -1,0 +1,25 @@
+StEventHeader.cxx:  grefmultCorrUtil->init(mRunId);
+StEventHeader.cxx:  grefmultCorrUtil->initEvent(mGRefMult, mVz, mZDCx) ;
+StEventHeader.cxx:  const Int_t cent16_grefmult = grefmultCorrUtil->getCentralityBin16() ;
+StEventHeader.cxx:  const Int_t cent9_grefmult  = grefmultCorrUtil->getCentralityBin9() ;
+StEventHeader.cxx:  const Double_t reweight = grefmultCorrUtil->getWeight() ;
+StEventHeader.cxx:  const Double_t grefmultCor = grefmultCorrUtil->getRefMultCorr() ;
+StEventHeader.cxx:  grefmultCorrUtil->init(mRunId);
+StEventHeader.cxx:  grefmultCorrUtil->initEvent(mGRefMult, mVz, mZDCx) ;
+StEventHeader.cxx:  const Int_t cent16_grefmult = grefmultCorrUtil->getCentralityBin16() ;
+StEventHeader.cxx:  const Int_t cent9_grefmult  = grefmultCorrUtil->getCentralityBin9() ;
+StEventHeader.cxx:  const Double_t reweight = grefmultCorrUtil->getWeight() ;
+StEventHeader.cxx:  const Double_t grefmultCor = grefmultCorrUtil->getRefMultCorr() ;
+StPicoAnaTreeMaker.cxx:   grefmultCorrUtil->init(15167013); //temporary use run14 to correct run16 events. Need to update.
+StPicoAnaTreeMaker.cxx:   grefmultCorrUtil->init(runId);
+StPicoAnaTreeMaker.cxx:  grefmultCorrUtil->initEvent( gref, vz, zdcx) ;
+StPicoAnaTreeMaker.cxx:  int cent16 = grefmultCorrUtil->getCentralityBin16() ;
+StPicoAnaTreeMaker.cxx:  int cent9 = grefmultCorrUtil->getCentralityBin9() ;
+StPicoAnaTreeMaker.cxx:  double reweight = grefmultCorrUtil->getWeight() ;
+StPicoAnaTreeMaker.cxx:  double grefmultcor = grefmultCorrUtil->getRefMultCorr() ;
+StPicoAnaTreeMaker.cxx:  grefmultCorrUtil->init(runId);
+StPicoAnaTreeMaker.cxx:  grefmultCorrUtil->initEvent( gref, vz, zdcx) ;
+StPicoAnaTreeMaker.cxx:  int cent16 = grefmultCorrUtil->getCentralityBin16() ;
+StPicoAnaTreeMaker.cxx:  int cent9 = grefmultCorrUtil->getCentralityBin9() ;
+StPicoAnaTreeMaker.cxx:  double reweight = grefmultCorrUtil->getWeight() ;
+StPicoAnaTreeMaker.cxx:  double grefmultcor = grefmultCorrUtil->getRefMultCorr() ;

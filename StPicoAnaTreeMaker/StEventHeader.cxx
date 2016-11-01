@@ -3,9 +3,9 @@
 #include "StTree.h"
 #include "StuRefMult.hh"
 #include "StPicoDstMaker/StPicoDst.h"
-#include "StPicoDstMaker/StPicoEvent.h"
-#include "StPicoDstMaker/StPicoTrack.h"
-#include "StPicoDstMaker/StPicoBTofPidTraits.h"
+#include "StPicoEvent/StPicoEvent.h"
+#include "StPicoEvent/StPicoTrack.h"
+#include "StPicoEvent/StPicoBTofPidTraits.h"
 #include "TVector2.h"
 #include "TRandom3.h"
 #include "StMuDSTMaker/COMMON/StMuDst.h" 
@@ -28,7 +28,11 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst, const Float_t *recenterCo
   prepareEventInfo(picoDst,recenterCor,doEvtPlane);
   //do the refmult correction
   StRefMultCorr* grefmultCorrUtil = CentralityMaker::instance()->getgRefMultCorr() ;
-  grefmultCorrUtil->init(mRunId);
+  if(mRunId>17000000){
+   grefmultCorrUtil->init(15167013);
+  }else{
+   grefmultCorrUtil->init(mRunId);
+  }
   grefmultCorrUtil->initEvent(mGRefMult, mVz, mZDCx) ;
 
   const Int_t cent16_grefmult = grefmultCorrUtil->getCentralityBin16() ;
@@ -51,7 +55,11 @@ StEventHeader::StEventHeader(const StPicoDst& picoDst)
 
   //do the refmult correction
   StRefMultCorr* grefmultCorrUtil = CentralityMaker::instance()->getgRefMultCorr() ;
-  grefmultCorrUtil->init(mRunId);
+  if(mRunId>17000000){
+   grefmultCorrUtil->init(15167013);
+  }else{
+   grefmultCorrUtil->init(mRunId);
+  }
   grefmultCorrUtil->initEvent(mGRefMult, mVz, mZDCx) ;
 
   const Int_t cent16_grefmult = grefmultCorrUtil->getCentralityBin16() ;
@@ -140,7 +148,7 @@ void StEventHeader::prepareEventInfo(const StPicoDst& picoDst, const Float_t *re
     for(int n=0;n<nTracks;n++){
       StPicoTrack *t = (StPicoTrack*)picoDst.track(n);
       Int_t q = t->charge();
-      Float_t dca = t->helix().distance(vtxPos,kFALSE);;
+      Float_t dca = t->helix(ev->bField()).distance(vtxPos,kFALSE);;
       double ratio = (double)t->nHitsFit()*1./t->nHitsMax();
       Double_t vertZ = vtxPos.z();
 

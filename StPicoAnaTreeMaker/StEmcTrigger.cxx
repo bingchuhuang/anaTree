@@ -1,5 +1,4 @@
 #include "StEmcTrigger.h"
-#include "StPicoDstMaker/StPicoConstants.h"
 #include "StMessMgr.h"
 #include <climits>
 

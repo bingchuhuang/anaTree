@@ -2,11 +2,11 @@
 #include "StMessMgr.h"
 #include "TVector2.h"
 #include "TMath.h"
-#include "StPicoDstMaker/StPicoTrack.h"
-#include "StPicoDstMaker/StPicoEvent.h"
+#include "StPicoEvent/StPicoTrack.h"
+#include "StPicoEvent/StPicoEvent.h"
 #include "StPicoDstMaker/StPicoDst.h"
-#include "StPicoDstMaker/StPicoBTofPidTraits.h"
-#include "StPicoDstMaker/StPicoEmcPidTraits.h"
+#include "StPicoEvent/StPicoBTofPidTraits.h"
+#include "StPicoEvent/StPicoBEmcPidTraits.h"
 #include "StMuDSTMaker/COMMON/StMuDst.h"
 #include "StMuDSTMaker/COMMON/StMuTrack.h"
 #include "StMuDSTMaker/COMMON/StMuEvent.h"
@@ -21,6 +21,7 @@ StElectronTrack::StElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0.,0.,0.)
    mDca(32768), mDcaXY(32768), mDcaZ(32768), mDcaZLine(32768),
    mNHitsFit(0), mNHitsDedx(0), 
    mNSigmaElectron(32768), mOrigin(0,0,0),
+   mDnDx(0),mDnDxError(0),
    mBeta(0), mLocalY(32768),
    mBTOWADC0(0), mBTOWE0(0), mBTOWE(0),
    mBEMCDistZ(32768), mBEMCDistPhi(32768), mBSMDNEta(0), mBSMDNPhi(0),
@@ -53,7 +54,7 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
    //for (int i = 0; i < 15; i++) mErrMatrix[i] = errMatrix[i];
 
    StThreeVectorF vertexPos = picoDst->event()->primaryVertex();
-   StPhysicalHelixD helix = t->helix();
+   StPhysicalHelixD helix = t->helix(picoDst->event()->bField());
    //mCurv = helix.curvature();
    //mDip = helix.dipAngle();
    //mPhase = helix.phase();
@@ -73,10 +74,13 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
    bool isHft = t->isHFTTrack();
    if(isHft) dca *= -1;
    mDca = fabs(dca*10000.)>32768? 32768: (Short_t)(dca*10000.);
+
+   mDnDx = t->dNdx();
+   mDnDxError = t->dNdxError();
    
    StThreeVectorF posDiff = dcaPos - vertexPos;
    if(sin(mGMom.theta())==0) mDcaZLine = 32768;
-   else mDcaZLine = (-posDiff.x()*cos(mGMom.phi())-posDiff.y()*sin(mGMom.phi()))*cos(mGMom.theta())/sin(mGMom.theta())+posDiff.z();
+   else mDcaZLine = ((-posDiff.x()*cos(mGMom.phi())-posDiff.y()*sin(mGMom.phi()))*cos(mGMom.theta())/sin(mGMom.theta())+posDiff.z())*10000;
 
    int index2TofPid = t->bTofPidTraitsIndex();
    if (index2TofPid>=0){
@@ -95,18 +99,18 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
       mBeta = (UShort_t)(beta*20000);
    }
 
-   int index2EmcPid = t->emcPidTraitsIndex();
+   int index2EmcPid = t->bemcPidTraitsIndex();
    if (index2EmcPid>=0){
-      StPicoEmcPidTraits *emcPid = picoDst->emcPidTraits(index2EmcPid);
-      mBTOWADC0 = emcPid->adc0();
-      mBTOWE0 = emcPid->e0()*1000;
-      mBTOWE = emcPid->e()*1000;
-      mBEMCDistZ = emcPid->zDist()*1000;
-      mBEMCDistPhi = emcPid->phiDist()*10000;
-      mBSMDNEta = emcPid->nEta();
-      mBSMDNPhi = emcPid->nPhi();
-      mBTOWDistEta = emcPid->etaTowDist()*10000;
-      mBTOWDistPhi = emcPid->phiTowDist()*10000;
+      StPicoBEmcPidTraits *emcPid = picoDst->bemcPidTraits(index2EmcPid);
+      mBTOWADC0 = emcPid->bemcAdc0();
+      mBTOWE0 = emcPid->bemcE0()*1000;
+      mBTOWE = emcPid->bemcE()*1000;
+      mBEMCDistZ = emcPid->bemcZDist()*1000;
+      mBEMCDistPhi = emcPid->bemcPhiDist()*10000;
+      mBSMDNEta = emcPid->bemcSmdNEta();
+      mBSMDNPhi = emcPid->bemcSmdNPhi();
+      mBTOWDistEta = emcPid->btowEtaDist()*10000;
+      mBTOWDistPhi = emcPid->btowPhiDist()*10000;
 
       mBTOWId = emcPid->btowId();
       mEmcTrgId = -1;
