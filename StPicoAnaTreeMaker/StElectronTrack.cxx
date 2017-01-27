@@ -83,6 +83,8 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
    else mDcaZLine = ((-posDiff.x()*cos(mGMom.phi())-posDiff.y()*sin(mGMom.phi()))*cos(mGMom.theta())/sin(mGMom.theta())+posDiff.z())*10000;
 
    int index2TofPid = t->bTofPidTraitsIndex();
+   mBeta = 0;
+   mLocalY = 32768;
    if (index2TofPid>=0){
       StPicoBTofPidTraits *tofPid = picoDst->btofPidTraits(index2TofPid);
       //mTofMatchFlag = tofPid->btofMatchFlag();
@@ -98,6 +100,7 @@ StElectronTrack::StElectronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
       }
       mBeta = (UShort_t)(beta*20000);
    }
+   
 
    int index2EmcPid = t->bemcPidTraitsIndex();
    if (index2EmcPid>=0){

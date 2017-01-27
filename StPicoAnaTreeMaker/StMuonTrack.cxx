@@ -76,6 +76,8 @@ StMuonTrack::StMuonTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
    else mDcaZLine = ((-posDiff.x()*cos(mGMom.phi())-posDiff.y()*sin(mGMom.phi()))*cos(mGMom.theta())/sin(mGMom.theta())+posDiff.z())*10000;
 
    int index2TofPid = t->bTofPidTraitsIndex();
+   mBeta = 0;
+   mLocalY = 32768;
    if (index2TofPid>=0){
       StPicoBTofPidTraits *tofPid = picoDst->btofPidTraits(index2TofPid);
       //mTofMatchFlag = tofPid->btofMatchFlag();
@@ -106,6 +108,14 @@ StMuonTrack::StMuonTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
             mTriggerFlag = hit->triggerFlag();
          }
       }
+   }else{
+      mMatchFlag = 0;
+      mdT = 32768;
+      mdZ = 32768;
+      mdY = 32768;
+      mChannel = 0;
+      mTriggerFlag = 0;
+
    }
 }
 //----------------------------------------------------------------------------------

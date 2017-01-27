@@ -62,6 +62,7 @@ StHadronTrack::StHadronTrack(StPicoDst *picoDst, StPicoTrack* t, Int_t idx)
 
       int index2TofPid = t->bTofPidTraitsIndex();
       Float_t localY = -999.;
+      mBeta = 0;
       if (index2TofPid>=0){
         StPicoBTofPidTraits *tofPid = picoDst->btofPidTraits(index2TofPid);
         //mTofMatchFlag = tofPid->btofMatchFlag();

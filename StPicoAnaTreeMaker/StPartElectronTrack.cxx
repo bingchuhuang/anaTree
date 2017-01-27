@@ -70,6 +70,8 @@ StPartElectronTrack::StPartElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0
    mDca = fabs(dca*10000.)>32768? 32768: (Short_t)(dca*10000.);
 
    int index2TofPid = t->bTofPidTraitsIndex();
+   mLocalY = 32768;
+   mBeta = 0;
    if (index2TofPid>=0){
       StPicoBTofPidTraits *tofPid = picoDst->btofPidTraits(index2TofPid);
       //mTofMatchFlag = tofPid->btofMatchFlag();
@@ -85,6 +87,7 @@ StPartElectronTrack::StPartElectronTrack() : mId(-1), mPMom(0., 0., 0.), mGMom(0
       }
       mBeta = (UShort_t)(beta*20000);
    }
+   
 
    int index2EmcPid = t->bemcPidTraitsIndex();
    if (index2EmcPid>=0){
