@@ -8,3 +8,5 @@ All setters can be found in StPicoAnaTreeMaker.h
 submit jobs: script/submitAll.sh
 
 hadd histograms and trees for each run: script/haddHist.sh and script/haddTree.sh
+
+My project in 2014-2016.
